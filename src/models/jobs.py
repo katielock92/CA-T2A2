@@ -10,25 +10,29 @@ class Job(db.Model):
     __tablename__ = "jobs"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))
-    description = db.Column(db.Text)
-    department = db.Column(db.String(50))
-    location = db.Column(db.String(50))
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    department = db.Column(db.String(50), nullable=False)
+    location = db.Column(db.String(50), nullable=False)
     status = db.Column(db.String(), default="Open", nullable=False)
-    salary_budget = db.Column(db.Integer())  # need to find SQL type for money if possible
-    # hiring_manager_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    # recruiter_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    salary_budget = db.Column(
+        db.Integer(), nullable=False
+    )  # need to find SQL type for money if possible
+    hiring_manager_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
-    # adding child relationship with Users for Recruiter or HM users, does not cascade delete:
-    # hiring_manager = db.relationship("User", backref="jobs")
-    # recruiter = db.relationship("User", back_populates="jobs")
+    # adding child relationship with Users for HM users, does not cascade delete:
+    hiring_manager = db.relationship("User", back_populates="jobs")
+
+    # applications = db.relationship("Application", back_populates="jobs", cascade="all, delete")
 
 
 # creating a Schema with Marshmallow to allow us to serialise Jobs into JSON:
 class JobSchema(ma.Schema):
+
     # nested schemas:
-    # hiring_manager = fields.Nested("UserSchema", only=["first_name", "last_name", "email"])
-    # recruiter = fields.Nested("UserSchema", only=["first_name", "last_name", "email"])
+    hiring_manager = fields.Nested(
+        "UserSchema", only=["first_name", "last_name", "email"]
+    )
 
     # field validations:
     title = fields.String(
@@ -53,9 +57,8 @@ class JobSchema(ma.Schema):
             "location",
             "description",
             "hiring_manager",
-            "recruiter",
             "status",
-            "salary_budget"
+            "salary_budget",
         )
         ordered = True
 

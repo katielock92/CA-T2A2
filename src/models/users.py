@@ -19,12 +19,11 @@ class User(db.Model):
     password = db.Column(db.String)
     access_level = db.Column(db.String, default="Candidate")
 
-    # adding parent relationship with Jobs for Recruiter or HM users, does not cascade delete:
-    #jobs = db.relationship("Job", back_populates="users")
+    # adding parent relationship with Jobs for HM users, does not cascade delete:
+    jobs = db.relationship("Job", back_populates="hiring_manager")
 
     # adding parent relationship with Applications for Candidate users, will delete applications if candidate user deleted:
-    # applications = db.relationship(
-    #    "Application", back_populates="users", cascade="all, delete")
+    #applications = db.relationship("Application", back_populates="users", cascade="all, delete")
 
 
 # creating a Schema with Marshmallow to allow us to serialise Users into JSON:

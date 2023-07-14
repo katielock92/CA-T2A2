@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from main import db
 from models.jobs import Job, job_schema, jobs_schema
 
@@ -23,6 +23,8 @@ def create_job():
     new_job.department = job_fields["department"]
     new_job.location = job_fields["location"]
     new_job.salary_budget = job_fields["salary_budget"]
+    new_job.hiring_manager_id = job_fields["hiring_manager_id"]
+    # add a validation for the hiring manager ID to give a better error?
     db.session.add(new_job)
     db.session.commit()
     return jsonify(job_schema.dump(new_job))
@@ -41,14 +43,14 @@ def delete_job(id):
     # # Stop the request if the user is not an admin
     # if not user.admin:
     #     return abort(401, description="Unauthorised user")
-    # # find the job
-    # job = job.query.filter_by(id=id).first()
-    # #return an error if the card doesn't exist
-    # if not Job:
-    #     return abort(400, description= "Job doesn't exist")
-    # #Delete the job from the database and commit
-    # db.session.delete(job)
-    # db.session.commit()
-    # #return the job in the response
-    # return jsonify(job_schema.dump(job))
+    # find the job
+    #job = job.query.filter_by(id=id).first()
+    # return an error if the card doesn't exist
+    #if not Job:
+        #return abort(400, description= "Job doesn't exist")
+    # Delete the job from the database and commit
+    #db.session.delete(job)
+    #db.session.commit()
+    # return the job in the response
+    #return jsonify(job_schema.dump(job))
     return "Job deleted"

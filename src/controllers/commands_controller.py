@@ -56,6 +56,8 @@ def seed_db():
     ]
     db.session.add_all(users)
 
+    db.session.commit()
+
     # create the test Job objects:
     jobs = [
         Job(
@@ -64,8 +66,8 @@ def seed_db():
             department="Engineering",
             location="Australia (Remote)",
             status="Open",
-            salary_budget="140000.00",
-            # hiring_manager_id=users[1]
+            salary_budget=140000,
+            hiring_manager_id="2"
         )
     ]
     db.session.add_all(jobs)

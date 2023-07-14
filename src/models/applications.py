@@ -7,23 +7,22 @@ from marshmallow.exceptions import ValidationError
 VALID_STATUSES = ("To review", "Recruiter interview", "Manager interview", "Offer", "Rejected")
 
 class Application(db.Model):
-    __tablename__= "APPLICATIONS"
+    __tablename__= "applications"
 
     id = db.Column(db.Integer,primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), nullable=False)
+    job_id = db.Column(db.Integer, db.ForeignKey("jobs.id"), nullable=False)
     application_date = db.Column(db.DATETIME)
     status = db.Column(db.String(), default="To review")
     #applicant user id
     location = db.Column(db.String(50))
     working_rights = db.Column(db.String(100))
     notice_period = db.Column(db.String(50))
-    salary_expectations = db.Column(db.Float()) # need to find SQL type for money if possible
+    salary_expectations = db.Column(db.Integer()) # need to find SQL type for money if possible
     #resume
     #cover letter
 
     # add relationships here, examples:
-        #user = db.relationship('User', back_populates='cards')
-        #comments = db.relationship('Comment', back_populates='card', cascade='all, delete')
+    #job = db.relationship("Job", back_populates="applications", cascade="all, delete")
     
 
 
@@ -39,7 +38,7 @@ class ApplicationSchema(ma.Schema):
 
     class Meta:
         # Fields to expose
-        fields = ("id", "") #add other fields
+        fields = ("id", "job_id", "application_date", "status", "location", "working_rights", "notice_period", "salary_expectations") #add other fields
 
 #single application schema, when one applications needs to be retrieved
 application_schema = ApplicationSchema()
