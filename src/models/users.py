@@ -22,13 +22,14 @@ class User(db.Model):
     # adding parent relationship with Jobs for HM users, does not cascade delete:
     jobs = db.relationship("Job", back_populates="hiring_manager")
 
-    # adding parent relationship with Applications for Candidate users, will delete applications if candidate user deleted:
-    #applications = db.relationship("Application", back_populates="users", cascade="all, delete")
+    # adding parent relationship with Applications for Candidate users, add cascade delete later:
+    applications = db.relationship("Application", back_populates="candidate")
 
 
 # creating a Schema with Marshmallow to allow us to serialise Users into JSON:
 class UserSchema(ma.Schema):
-    # adding validations required for specific fields:
+
+    # field validations:
     email = fields.String(
         required=True,
         validate=Regexp(

@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, request
 from main import db
 from models.users import User, user_schema, users_schema
+
+from flask import Blueprint, jsonify, request
 
 
 users = Blueprint('users', __name__, url_prefix="/users")

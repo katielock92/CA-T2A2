@@ -23,7 +23,8 @@ class Job(db.Model):
     # adding child relationship with Users for HM users, does not cascade delete:
     hiring_manager = db.relationship("User", back_populates="jobs")
 
-    # applications = db.relationship("Application", back_populates="jobs", cascade="all, delete")
+    # adding parent relationship with Applications, add cascade delete later:
+    applications = db.relationship("Application", back_populates="job")
 
 
 # creating a Schema with Marshmallow to allow us to serialise Jobs into JSON:
@@ -49,7 +50,6 @@ class JobSchema(ma.Schema):
     status = fields.String(validate=OneOf(VALID_STATUSES))
 
     class Meta:
-        # Fields to expose
         fields = (
             "id",
             "title",

@@ -1,8 +1,11 @@
-from main import db
-from flask import Blueprint
-from main import bcrypt
+from main import db, bcrypt
 from models.jobs import Job
 from models.users import User
+from models.applications import Application
+from models.interviews import Interview
+from models.scorecards import Scorecard
+
+from flask import Blueprint
 from datetime import date
 
 db_commands = Blueprint("db", __name__)
@@ -67,10 +70,53 @@ def seed_db():
             location="Australia (Remote)",
             status="Open",
             salary_budget=140000,
-            hiring_manager_id="2"
+            hiring_manager_id="2",
         )
     ]
     db.session.add_all(jobs)
 
     db.session.commit()
+
+    # create the test Application objects:
+    applications = [
+        Application(
+            job_id="1",
+            application_date=date.today(),
+            candidate_id="3",
+            location="Sydney",
+            working_rights="Citizen",
+            notice_period="2 weeks",
+            salary_expectations=135000,
+        )
+    ]
+    db.session.add_all(applications)
+
+    db.session.commit()
+
+    # create the test Interview objects:
+    interviews = [
+        Interview(
+            application_id="1",
+            interview_date="2023-07-21",
+            length_mins=20,
+            format="Phone",
+        )
+    ]
+    db.session.add_all(interviews)
+
+    db.session.commit()
+
+
+    # create the test Scorecard objects:
+    scorecards = [
+        Scorecard(
+            interview_id="1",
+            notes="Suitable candidate, fits what we're looking for. Proceed to HM interview.",
+            rating=True,
+        )
+    ]
+    db.session.add_all(scorecards)
+
+    db.session.commit()
+
     print("Database tables seeded")

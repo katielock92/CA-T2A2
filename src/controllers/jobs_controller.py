@@ -1,9 +1,9 @@
-from flask import Blueprint, jsonify, request, abort
 from main import db
 from models.jobs import Job, job_schema, jobs_schema
 
+from flask import Blueprint, jsonify, request, abort
 
-jobs = Blueprint('jobs', __name__, url_prefix="/jobs")
+jobs = Blueprint("jobs", __name__, url_prefix="/jobs")
 
 # lists all jobs using a GET request:
 @jobs.route("/", methods=["GET"])
