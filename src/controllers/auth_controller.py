@@ -1,5 +1,5 @@
 from main import db, bcrypt
-from models.users import User, user_schema, users_schema
+from models.users import User, user_schema
 
 from flask import Blueprint, request
 from flask_jwt_extended import create_access_token
@@ -30,17 +30,14 @@ def auth_register():
         if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
             return {"error": "Email address already in use, please login or register with a different email."}, 409
         if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
-            return {"error": f"The {err.orig.diag.column_name}field is required, please try again."}, 409
+            return {"error": f"The '{err.orig.diag.column_name}' field is required, please try again."}, 409
 
 # POST method for existing users to login:
-# not currently working, come back to this
 @auth.route("/login", methods=["POST"])
 def auth_login():
     body_data = request.get_json()
-    # Find the user by email address
     stmt = db.select(User).filter_by(email=body_data.get("email"))
     user = db.session.scalar(stmt)
-    # If user exists and password is correct
     if user and bcrypt.check_password_hash(user.password, body_data.get("password")):
         token = create_access_token(
             identity=str(user.id), expires_delta=timedelta(days=1)

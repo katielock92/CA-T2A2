@@ -2,13 +2,30 @@ from main import db
 from models.users import User, user_schema, users_schema
 
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+import functools
 
 
-users = Blueprint('users', __name__, url_prefix="/users")
+users = Blueprint("users", __name__, url_prefix="/users")
 
-# lists all users using a GET request:
-# add JWT auth to this later
+# creating wrapper function for admin authorised actions:
+def authorise_as_admin(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        user_id = get_jwt_identity()
+        stmt = db.select(User).filter_by(id=user_id)
+        user = db.session.scalar(stmt)
+        if user.access_level == "Recruiter":
+            return fn(*args, **kwargs)
+        else:
+            return {"error": "You are not authorised to perform this action - please contact a Recruiter"}, 403
+    
+    return wrapper
+
+# lists all users using a GET request, only available to admins:
 @users.route("/", methods=["GET"])
+@jwt_required()
+@authorise_as_admin
 def get_users():
     users_list = User.query.all()
     result = users_schema.dump(users_list)
@@ -16,13 +33,30 @@ def get_users():
 
 
 # allows an admin to update a user's permission using a PUT request:
-# add JWT auth to this later
-@users.route("/<int:id>/", methods=["PUT"])
-def update_user():
-    pass
+@users.route("/<int:id>/", methods=["PUT", "POST"])
+@jwt_required()
+@authorise_as_admin
+def update_user(id):
+    body_data = user_schema.load(request.get_json(), partial=True)
+    stmt = db.select(User).filter_by(id=id)
+    user = db.session.scalar(stmt)
+    if user:
+        user.access_level = body_data.get('access_level') or user.access_level # add better error for validation
+        db.session.commit()
+        return user_schema.dump(user)
+    else:
+        return {"error": f"User not found with id {id}"}, 404
 
 # allows an admin to delete a user using a DELETE request:
-# add JWT auth to this later
 @users.route("/<int:id>/", methods=["DELETE"])
-def delete_user():
-    pass
+@jwt_required()
+@authorise_as_admin
+def delete_user(id):
+    stmt = db.select(User).filter_by(id=id)
+    user = db.session.scalar(stmt)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        return {"message": f"The user for {user.email} has been deleted successfully"}
+    else:
+        return {"error": f"User not found with id {id}"}, 404
