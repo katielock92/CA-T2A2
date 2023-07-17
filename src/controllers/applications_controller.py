@@ -1,8 +1,8 @@
 from main import db
-from models.applications import Application, application_schema, applications_schema
+from models.applications import Application, application_schema, application_view_schema, application_staff_view_schema, applications_staff_view_schema
 from models.users import User
 
-from flask import Blueprint, jsonify, request, abort
+from flask import Blueprint, jsonify, request
 from datetime import date
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import functools
@@ -50,12 +50,11 @@ def authorise_as_staff(fn):
 @authorise_as_admin
 def get_all_applications():
     applications_list = Application.query.all() # need to update for some kind of sort order?
-    result = applications_schema.dump(applications_list)
+    result = applications_staff_view_schema.dump(applications_list)
     return jsonify(result)
 
 
 # gets application by id using a GET request, only authenticated staff can perform this action:
-# find some way to authenticate the hiring manager?
 @applications.route("/<int:id>", methods=["GET"])
 @jwt_required()
 @authorise_as_staff
@@ -63,54 +62,31 @@ def get_one_application(id):
     query = db.select(Application).filter_by(id=id)
     application = db.session.scalar(query)
     if application:
-        return application_schema.dump(application)
+        return application_staff_view_schema.dump(application)
     else:
         return {"Error": f"Application not found with id {id}"}, 404
 
-
-# need to add a route for viewing applications by job or by status?
-
 # creates a new application using a POST request:
-# need to add JWT auth to this later
 @applications.route("/", methods=["POST"])
-#@jwt_required()
+@jwt_required()
 def create_application():
-    body_data = application_schema.load(request.get_json())
-    application = Application(
-        #job_id = body_data.get("job_id"),
-        #candidate_id=get_jwt_identity(),
-        application_date=date.today(),
-        location=body_data.get("location"),
-        working_rights=body_data.get("working_rights"),
-        notice_period=body_data.get("notice_period"),
-        salary_expectations=body_data.get("salary_expectations"),
-    )
-    db.session.add(application)
-    return application_schema.dump(application), 201
+        application_fields = application_schema.load(request.json)
+        new_application = Application()
+        new_application.job_id = application_fields["job_id"]
+        new_application.candidate_id = get_jwt_identity()
+        new_application.application_date = date.today()
+        new_application.location = application_fields["location"]
+        new_application.working_rights = application_fields["working_rights"]
+        new_application.notice_period = application_fields["notice_period"]
+        new_application.salary_expectations = application_fields["salary_expectations"]
+        db.session.add(new_application)
+        db.session.commit()
+        return jsonify(application_view_schema.dump(new_application)), 201
 
-    # application_fields = application_schema.load(request.json)
-    # new_application = Application()
-    # id set automatically by Flask
-    # need to automatically set candidate id once relation is formed
-    # new_application.job_id = application_fields["job_id"]
-    # new_application.candidate_id = application_fields["candidate_id"] #update this later to use JWT
-    # new_application.application_date = date.today()
-    # new_application.location = application_fields["location"]
-    # new_application.working_rights = application_fields["working_rights"]
-    # new_application.notice_period = application_fields["notice_period"]
-    # new_application.salary_expectations = application_fields["salary_expectations"]
-    # db.session.add(new_application)
-    # db.session.commit()
-    # return jsonify(application_schema.dump(new_application)), 201
-
-
-    # Katie notes - first application method will work better with nested schemas but it's not automatically doing id and status?
-
-# allows an authorised staff member to update an application status using a PUT request:
-# need to add some kind of authentication for only linked hiring managers to perform
+# allows an admin to update an application status using a PUT request:
 @applications.route("/<int:id>/", methods=["PUT"])
 @jwt_required()
-@authorise_as_staff
+@authorise_as_admin
 def update_application(id):
     body_data = application_schema.load(request.get_json(), partial=True)
     stmt = db.select(Application).filter_by(id=id)
@@ -118,7 +94,7 @@ def update_application(id):
     if application:
         application.status = body_data.get("status") or application.status
         db.session.commit()
-        return application_schema.dump(application)
+        return application_staff_view_schema.dump(application)
     else:
         return {"error": f"Application not found with id {id}"}, 404
     

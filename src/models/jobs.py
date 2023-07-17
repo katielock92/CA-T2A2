@@ -119,7 +119,7 @@ jobs_staff_view_schema = JobStaffViewSchema(many=True)
 # additional Schema for displaying jobs to non-authenticated users:
 class JobViewSchema(ma.Schema):
     class Meta:
-        fields = ("title", "department", "location", "description", "status")
+        fields = ("id", "title", "department", "location", "description", "status")
         ordered = True
 
 

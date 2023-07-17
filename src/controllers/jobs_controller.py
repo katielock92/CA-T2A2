@@ -54,31 +54,48 @@ def authorise_as_staff(fn):
 
 # lists open jobs using a GET request:
 @jobs.route("/", methods=["GET"])
+@jwt_required(optional=True)
 def get_open_jobs():
     jobs_list = Job.query.filter_by(status="Open")
-    admin = True  # add check on database here for user access
-    if admin:
-        result = jobs_staff_view_schema.dump(jobs_list)
-        return jsonify(result)
-    else:
+    user_id = get_jwt_identity()
+    # checks if the user has a Recruiter or Hiring Manager permission to return the more detailed schema:
+    try:
+        stmt = db.select(User).filter_by(id=user_id)
+        user = db.session.scalar(stmt)
+        if user.access_level == "Recruiter" or user.access_level == "Hiring Manager":
+            result = jobs_staff_view_schema.dump(jobs_list)
+            return jsonify(result)
+        # if the user does not have this permission, returns the more simplified schema:
+        else:
+            result = jobs_view_schema.dump(jobs_list)
+            return jsonify(result)
+    # if the user is not logged in, also returns the more simplified schema:
+    except AttributeError:
         result = jobs_view_schema.dump(jobs_list)
         return jsonify(result)
 
 
 # lists all jobs (regardless of status) using a GET request:
 @jobs.route("/all/", methods=["GET"])
+@jwt_required(optional=True)
 def get_all_jobs():
     jobs_list = Job.query.all()
-    admin = False  # add check on database here
-    if admin:
-        result = jobs_staff_view_schema.dump(jobs_list)
-        return jsonify(result)
-    else:
+    user_id = get_jwt_identity()
+    # checks if the user has a Recruiter or Hiring Manager permission to return the more detailed schema:
+    try:
+        stmt = db.select(User).filter_by(id=user_id)
+        user = db.session.scalar(stmt)
+        if user.access_level == "Recruiter" or user.access_level == "Hiring Manager":
+            result = jobs_staff_view_schema.dump(jobs_list)
+            return jsonify(result)
+        # if the user does not have this permission, returns the more simplified schema:
+        else:
+            result = jobs_view_schema.dump(jobs_list)
+            return jsonify(result)
+    # if the user is not logged in, also returns the more simplified schema:
+    except AttributeError:
         result = jobs_view_schema.dump(jobs_list)
         return jsonify(result)
-
-
-# add conditions to return different schemas depending on user access
 
 
 # allows an authorised user to create a new job using a POST request:
