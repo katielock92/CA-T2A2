@@ -24,14 +24,14 @@ class Application(db.Model):
     location = db.Column(db.String(50), nullable=False)
     working_rights = db.Column(db.String(100), nullable=False)
     notice_period = db.Column(db.String(50), nullable=False)
-    salary_expectations = db.Column(
-        db.Integer(), nullable=False
-    )  # need to find SQL type for money if possible
-    # resume
-    # cover letter
+    salary_expectations = db.Column(db.Integer(), nullable=False)
+    # using a string rather than a binary datatype for resume for simplicity in this API so that a URL can be used instead:
+    resume = db.Column(db.String(), nullable=False)
 
     # adding parent relationship with Interviews:
-    interviews = db.relationship("Interview", back_populates="application", cascade="all, delete")
+    interviews = db.relationship(
+        "Interview", back_populates="application", cascade="all, delete"
+    )
 
     # adding child relationship with Users and Jobs:
     candidate = db.relationship("User", back_populates="applications")
@@ -55,7 +55,8 @@ class ApplicationSchema(ma.Schema):
             "working_rights",
             "notice_period",
             "salary_expectations",
-        )  # add other fields once they are set up
+            "resume"
+        )
 
 
 # single application schema, when one applications needs to be retrieved
@@ -84,7 +85,8 @@ class ApplicationStaffViewSchema(ma.Schema):
             "working_rights",
             "notice_period",
             "salary_expectations",
-        )  # add other fields once they are set up
+            "resume"
+        )
 
 
 # single application schema, when one applications needs to be retrieved
@@ -111,7 +113,8 @@ class ApplicationViewSchema(ma.Schema):
             "working_rights",
             "notice_period",
             "salary_expectations",
-        )  # add other fields once they are set up
+            "resume"
+        )
 
 
 # single application schema, when one applications needs to be retrieved
@@ -137,7 +140,7 @@ class ApplicationInterviewSchema(ma.Schema):
             "working_rights",
             "notice_period",
             "salary_expectations",
-        )  # add other fields once they are set up
+        )
 
 
 # single application schema, when one applications needs to be retrieved

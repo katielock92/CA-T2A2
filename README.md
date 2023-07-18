@@ -49,7 +49,7 @@ ___
 x
 
 ___
-### ***R8: Describe your projects models in terms of the relationships they have with each other***
+### ***R8: Describe your project's models in terms of the relationships they have with each other***
 x
 
 ___

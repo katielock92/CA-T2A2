@@ -16,6 +16,7 @@ class User(db.Model):
     last_name = db.Column(db.String(100), nullable=False)
     phone_number = db.Column(db.String(), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
+    # string used for phone number so that leading zeroes aren't dropped and certain special characters are allowed:
     password = db.Column(db.String(), nullable=False)
     access_level = db.Column(db.String, default="Candidate", nullable=False)
 
@@ -35,14 +36,12 @@ class UserSchema(ma.Schema):
     # field validations:
     # validations not working as expected, revisit these
     email = fields.String(
-        required=True,
         validate=Regexp(
             "([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+",
             error="Invalid email format - please try again.",
         ),
     )
     first_name = fields.String(
-        required=True,
         validate=And(
             Length(
                 max=50, error="First name can only be a maximum of 50 characters long"
@@ -54,7 +53,6 @@ class UserSchema(ma.Schema):
         ),
     )
     last_name = fields.String(
-        required=True,
         validate=And(
             Length(
                 max=50, error="Last name can only be a maximum of 50 characters long"
@@ -66,7 +64,6 @@ class UserSchema(ma.Schema):
         ),
     )
     phone_number = fields.String(
-        required=True,
         validate=And(
             Length(
                 min=10, error="Phone number must be between 10-20 characters in length"

@@ -4,6 +4,7 @@ from models.users import User, user_schema
 from flask import Blueprint, request
 from flask_jwt_extended import create_access_token
 from sqlalchemy.exc import IntegrityError
+from marshmallow import ValidationError
 from psycopg2 import errorcodes
 from datetime import timedelta
 
@@ -26,11 +27,14 @@ def auth_register():
         db.session.add(user)
         db.session.commit()
         return user_schema.dump(user), 201
+    except ValidationError:
+        return {"error": f"Invalid format, please try again."}, 409
     except IntegrityError as err:
         if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
             return {"error": "Email address already in use, please login or register with a different email."}, 409
         if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
             return {"error": f"The '{err.orig.diag.column_name}' field is required, please try again."}, 409
+        
 
 # POST method for existing users to login:
 @auth.route("/login", methods=["POST"])

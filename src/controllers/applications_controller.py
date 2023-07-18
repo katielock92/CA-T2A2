@@ -6,6 +6,9 @@ from flask import Blueprint, jsonify, request
 from datetime import date
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import functools
+from sqlalchemy.exc import IntegrityError
+from marshmallow import ValidationError
+from psycopg2 import errorcodes
 
 
 applications = Blueprint("applications", __name__, url_prefix="/applications")
@@ -70,18 +73,33 @@ def get_one_application(id):
 @applications.route("/", methods=["POST"])
 @jwt_required()
 def create_application():
-        application_fields = application_schema.load(request.json)
-        new_application = Application()
-        new_application.job_id = application_fields["job_id"]
-        new_application.candidate_id = get_jwt_identity()
-        new_application.application_date = date.today()
-        new_application.location = application_fields["location"]
-        new_application.working_rights = application_fields["working_rights"]
-        new_application.notice_period = application_fields["notice_period"]
-        new_application.salary_expectations = application_fields["salary_expectations"]
-        db.session.add(new_application)
-        db.session.commit()
-        return jsonify(application_view_schema.dump(new_application)), 201
+    try:
+            application_fields = application_schema.load(request.json)
+            new_application = Application()
+            new_application.job_id = application_fields["job_id"]
+            new_application.candidate_id = get_jwt_identity()
+            new_application.application_date = date.today()
+            new_application.location = application_fields["location"]
+            new_application.working_rights = application_fields["working_rights"]
+            new_application.notice_period = application_fields["notice_period"]
+            new_application.salary_expectations = application_fields["salary_expectations"]
+            db.session.add(new_application)
+            db.session.commit()
+            return jsonify(application_view_schema.dump(new_application)), 201
+    except ValidationError:
+        return {
+            "error": "A required field has not been provided, please try again."
+        }, 409
+    except IntegrityError as err:
+        if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
+            return {
+                "error": f"The '{err.orig.diag.column_name}' field is required, please try again."
+            }, 409
+        else:
+            return {
+                "error": "Invalid job id provided, please try again."
+            }, 409
+
 
 # allows an admin to update an application status using a PUT request:
 @applications.route("/<int:id>/", methods=["PUT"])

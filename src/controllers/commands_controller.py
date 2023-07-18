@@ -120,15 +120,17 @@ def seed_db():
             working_rights="Citizen",
             notice_period="2 weeks",
             salary_expectations=135000,
+            resume="https://www.docdroid.net/WyjIuyO/fake-resume-pdf"
         ),
         Application(
-            job_id="2",
+            job_id=2,
             application_date=date.today(),
-            candidate_id="6",
+            candidate_id=6,
             location="Sydney",
             working_rights="Citizen",
             notice_period="4 weeks",
             salary_expectations=152000,
+            resume="https://www.docdroid.net/WyjIuyO/fake-resume-pdf"
         )
     ]
     db.session.add_all(applications)
