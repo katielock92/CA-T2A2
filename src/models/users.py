@@ -19,9 +19,10 @@ class User(db.Model):
     password = db.Column(db.String(), nullable=False)
     access_level = db.Column(db.String, default="Candidate", nullable=False)
 
-    # adding parent relationship with Jobs and Interviews, does not cascade delete:
+    # adding parent relationship with Jobs, Interviews and Scorecards, does not cascade delete:
     jobs = db.relationship("Job", back_populates="hiring_manager")
     interviews = db.relationship("Interview", back_populates="interviewer")
+    scorecards = db.relationship("Scorecard", back_populates="interviewer")
 
     # adding parent relationship with Applications for Candidate users:
     applications = db.relationship(

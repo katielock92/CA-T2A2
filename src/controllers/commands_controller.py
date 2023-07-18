@@ -6,7 +6,7 @@ from models.interviews import Interview
 from models.scorecards import Scorecard
 
 from flask import Blueprint
-from datetime import date
+from datetime import date, datetime
 
 db_commands = Blueprint("db", __name__)
 
@@ -167,8 +167,10 @@ def seed_db():
     # create the test Scorecard objects:
     scorecards = [
         Scorecard(
+            scorecard_datetime=datetime.now(),
             interview_id=1,
-            notes="Suitable candidate, fits what we're looking for. Proceed to HM interview.",
+            interviewer_id=1,
+            notes="Good candidate, fits what we're looking for and seems to be a culture fit. Proceed to next interview.",
             rating=True,
         )
     ]
