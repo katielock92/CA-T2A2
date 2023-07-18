@@ -9,7 +9,7 @@ class Scorecard(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     interview_id = db.Column(db.Integer, db.ForeignKey("interviews.id"))  # add nullable later
-    #interview_id - add later with relation
+    #interviewer_id - add later with relation
     notes = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Boolean, nullable=False)
     # add rest of the fields

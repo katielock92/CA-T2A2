@@ -17,21 +17,21 @@ class Application(db.Model):
     __tablename__ = "applications"
 
     id = db.Column(db.Integer, primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey("jobs.id"))
-    application_date = db.Column(db.String)  # ensure date format added correctly later
-    status = db.Column(db.String(), default="To review")
-    candidate_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    location = db.Column(db.String(50))
-    working_rights = db.Column(db.String(100))
-    notice_period = db.Column(db.String(50))
+    job_id = db.Column(db.Integer, db.ForeignKey("jobs.id"), nullable=False)
+    application_date = db.Column(db.String(), nullable=False)
+    status = db.Column(db.String(), default="To review", nullable=False)
+    candidate_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    location = db.Column(db.String(50), nullable=False)
+    working_rights = db.Column(db.String(100), nullable=False)
+    notice_period = db.Column(db.String(50), nullable=False)
     salary_expectations = db.Column(
-        db.Integer()
+        db.Integer(), nullable=False
     )  # need to find SQL type for money if possible
     # resume
     # cover letter
 
-    # adding parent relationship with Interviews, add cascade later
-    interviews = db.relationship("Interview", back_populates="application")
+    # adding parent relationship with Interviews:
+    interviews = db.relationship("Interview", back_populates="application", cascade="all, delete")
 
     # adding child relationship with Users and Jobs:
     candidate = db.relationship("User", back_populates="applications")
@@ -106,6 +106,32 @@ class ApplicationViewSchema(ma.Schema):
         fields = (
             "job",
             "application_date",
+            "candidate",
+            "location",
+            "working_rights",
+            "notice_period",
+            "salary_expectations",
+        )  # add other fields once they are set up
+
+
+# single application schema, when one applications needs to be retrieved
+application_view_schema = ApplicationViewSchema()
+# multiple application schema, when many applications need to be retrieved
+applications_view_schema = ApplicationViewSchema(many=True)
+
+
+# additional Schema for displaying application info on interviews:
+class ApplicationInterviewSchema(ma.Schema):
+    # nested schemas:
+    candidate = fields.Nested(
+        "UserSchema", only=["first_name", "last_name", "email", "phone_number"]
+    )
+    job = fields.Nested("JobSchema", only=["title"])
+
+    class Meta:
+        # Fields to expose
+        fields = (
+            "job",
             "candidate",
             "location",
             "working_rights",

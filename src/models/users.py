@@ -1,7 +1,7 @@
 from main import db, ma
 
 from marshmallow import fields
-from marshmallow.validate import Regexp, OneOf
+from marshmallow.validate import Regexp, OneOf, And, Length
 
 
 VALID_ACCESS = ("Candidate", "Hiring Manager", "Recruiter")
@@ -14,27 +14,69 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
-    phone_number = db.Column(db.String(15), nullable=False)
+    phone_number = db.Column(db.String(), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String)
-    access_level = db.Column(db.String, default="Candidate")
+    password = db.Column(db.String(), nullable=False)
+    access_level = db.Column(db.String, default="Candidate", nullable=False)
 
-    # adding parent relationship with Jobs for HM users, does not cascade delete:
+    # adding parent relationship with Jobs and Interviews, does not cascade delete:
     jobs = db.relationship("Job", back_populates="hiring_manager")
+    interviews = db.relationship("Interview", back_populates="interviewer")
 
-    # adding parent relationship with Applications for Candidate users, add cascade delete later:
-    applications = db.relationship("Application", back_populates="candidate")
+    # adding parent relationship with Applications for Candidate users:
+    applications = db.relationship(
+        "Application", back_populates="candidate", cascade="all, delete"
+    )
 
 
 # creating a Schema with Marshmallow to allow us to serialise Users into JSON:
 class UserSchema(ma.Schema):
-
     # field validations:
+    # validations not working as expected, revisit these
     email = fields.String(
         required=True,
         validate=Regexp(
             "([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+",
-            error="Invalid email format please try again.",
+            error="Invalid email format - please try again.",
+        ),
+    )
+    first_name = fields.String(
+        required=True,
+        validate=And(
+            Length(
+                max=50, error="First name can only be a maximum of 50 characters long"
+            ),
+            Regexp(
+                "^[a-zA-Z -]+",
+                error="Name can contain only letters, spaces and hyphens - please try again.",
+            ),
+        ),
+    )
+    last_name = fields.String(
+        required=True,
+        validate=And(
+            Length(
+                max=50, error="Last name can only be a maximum of 50 characters long"
+            ),
+            Regexp(
+                "^[a-zA-Z -]+",
+                error="Name can contain only letters, spaces and hyphens - please try again.",
+            ),
+        ),
+    )
+    phone_number = fields.String(
+        required=True,
+        validate=And(
+            Length(
+                min=10, error="Phone number must be between 10-20 characters in length"
+            ),
+            Length(
+                max=20, error="Phone number must be between 10-20 characters in length"
+            ),
+            Regexp(
+                "^[0-9() -+]+",
+                error="Phone number can only contains numbers and certain special characters - please try again.",
+            ),
         ),
     )
     access_level = fields.String(validate=OneOf(VALID_ACCESS))

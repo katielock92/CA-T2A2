@@ -56,6 +56,30 @@ def seed_db():
             password=bcrypt.generate_password_hash("Namaste55").decode("utf-8"),
             access_level="Candidate",
         ),
+        User(
+            first_name="Regina",
+            last_name="Taylor",
+            phone_number="0475319599",
+            email="regina.taylor@example.com",
+            password=bcrypt.generate_password_hash("Camden123").decode("utf-8"),
+            access_level="Recruiter"
+        ),
+        User(
+            first_name="Ray",
+            last_name="Torres",
+            phone_number="0459459728",
+            email="ray.torres@example.com",
+            password=bcrypt.generate_password_hash("Hughes92").decode("utf-8"),
+            access_level="Hiring Manager",
+        ),
+        User(
+            first_name="Alfred",
+            last_name="Campbell",
+            phone_number="0432484967",
+            email="alfred.campbell@example.com",
+            password=bcrypt.generate_password_hash("Tetsuo43").decode("utf-8"),
+            access_level="Candidate",
+        )    
     ]
     db.session.add_all(users)
 
@@ -70,7 +94,16 @@ def seed_db():
             location="Australia (Remote)",
             status="Open",
             salary_budget=140000,
-            hiring_manager_id="2",
+            hiring_manager_id=2,
+        ),
+        Job(
+            title="Account Director",
+            description="In this exciting role, you'll be engaging with senior executives at multiple levels and functions across the client organisation. Your experience working across complex and/or matrix level organisations will serve you well in understanding the complexity and dynamics of working with these companies.",
+            department="Accounts",
+            location="Sydney",
+            status="Open",
+            salary_budget=150000,
+            hiring_manager_id=5,
         )
     ]
     db.session.add_all(jobs)
@@ -80,13 +113,22 @@ def seed_db():
     # create the test Application objects:
     applications = [
         Application(
-            job_id="1",
+            job_id=1,
             application_date=date.today(),
-            candidate_id="3",
+            candidate_id=3,
             location="Sydney",
             working_rights="Citizen",
             notice_period="2 weeks",
             salary_expectations=135000,
+        ),
+        Application(
+            job_id="2",
+            application_date=date.today(),
+            candidate_id="6",
+            location="Sydney",
+            working_rights="Citizen",
+            notice_period="4 weeks",
+            salary_expectations=152000,
         )
     ]
     db.session.add_all(applications)
@@ -96,11 +138,26 @@ def seed_db():
     # create the test Interview objects:
     interviews = [
         Interview(
-            application_id="1",
-            interview_date="2023-07-21",
+            application_id=1,
+            interview_datetime="2023-07-21 10:30:00",
             length_mins=20,
             format="Phone",
-        )
+            interviewer_id=1
+        ),
+        Interview(
+            application_id=2,
+            interview_datetime="2023-07-25 14:00:00",
+            length_mins=45,
+            format="Video call",
+            interviewer_id=2
+        ),
+        Interview(
+            application_id=2,
+            interview_datetime="2023-07-23 10:30:00",
+            length_mins=20,
+            format="Phone",
+            interviewer_id=1
+        ),
     ]
     db.session.add_all(interviews)
 
@@ -110,7 +167,7 @@ def seed_db():
     # create the test Scorecard objects:
     scorecards = [
         Scorecard(
-            interview_id="1",
+            interview_id=1,
             notes="Suitable candidate, fits what we're looking for. Proceed to HM interview.",
             rating=True,
         )

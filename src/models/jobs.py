@@ -18,13 +18,13 @@ class Job(db.Model):
     salary_budget = db.Column(
         db.Integer(), nullable=False
     )  # need to find SQL type for money if possible
-    hiring_manager_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    hiring_manager_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
-    # adding child relationship with Users for HM users, does not cascade delete:
+    # adding child relationship with Users for HM users:
     hiring_manager = db.relationship("User", back_populates="jobs")
 
-    # adding parent relationship with Applications, add cascade delete later:
-    applications = db.relationship("Application", back_populates="job")
+    # adding parent relationship with Applications:
+    applications = db.relationship("Application", back_populates="job", cascade="all, delete")
 
 
 # creating a Schema with Marshmallow to allow us to serialise Jobs into JSON:
