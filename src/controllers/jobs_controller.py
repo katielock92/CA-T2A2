@@ -2,19 +2,18 @@ from main import db
 from models.jobs import (
     Job,
     job_schema,
-    job_view_schema,
     jobs_view_schema,
-    job_admin_schema, jobs_admin_schema, job_staff_schema, jobs_staff_schema
+    job_admin_schema,
+    jobs_admin_schema,
+    jobs_staff_schema,
 )
 from models.applications import Application, applications_staff_view_schema
-from models.users import User
 from models.staff import Staff
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import functools
 from sqlalchemy.exc import IntegrityError
-from marshmallow import ValidationError
 from psycopg2 import errorcodes
 
 jobs = Blueprint("jobs", __name__, url_prefix="/jobs")
@@ -100,7 +99,7 @@ def get_all_jobs():
     else:
         result = jobs_view_schema.dump(jobs_list)
         return jsonify(result)
-    
+
 
 # returns an individual job by id using a GET request, the schema depending on user permission:
 @jobs.route("/<int:id>/", methods=["GET"])
@@ -158,10 +157,6 @@ def create_job():
         db.session.add(new_job)
         db.session.commit()
         return jsonify(job_admin_schema.dump(new_job)), 201
-    except ValidationError:
-        return {
-            "error": "A required field has not been provided, please try again."
-        }, 409
     except IntegrityError as err:
         if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
             return {
@@ -169,9 +164,9 @@ def create_job():
             }, 409
         else:
             return {
-                "error": "Invalid hiring manager id provided, please try again."
-            }, 409
-            
+                "error": f"Invalid hiring manager id provided, please try again."
+            }, 400
+
 
 # allows an authorised staff member to update a job using a PUT or POST request:
 @jobs.route("/<int:id>/", methods=["PUT", "POST"])
@@ -182,17 +177,22 @@ def update_job(id):
     stmt = db.select(Job).filter_by(id=id)
     job = db.session.scalar(stmt)
     if job:
-        job.title = body_data.get("title") or job.title
-        job.description = body_data.get("description") or job.description
-        job.department = body_data.get("department") or job.department
-        job.location = body_data.get("location") or job.location
-        job.salary_budget = body_data.get("salary_budget") or job.salary_budget
-        job.status = body_data.get("status") or job.status
-        job.hiring_manager_id = (
-            body_data.get("hiring_manager_id") or job.hiring_manager_id
-        )
-        db.session.commit()
-        return job_admin_schema.dump(job)
+        try:
+            job.title = body_data.get("title") or job.title
+            job.description = body_data.get("description") or job.description
+            job.department = body_data.get("department") or job.department
+            job.location = body_data.get("location") or job.location
+            job.salary_budget = body_data.get("salary_budget") or job.salary_budget
+            job.status = body_data.get("status") or job.status
+            job.hiring_manager_id = (
+                body_data.get("hiring_manager_id") or job.hiring_manager_id
+            )
+            db.session.commit()
+            return job_admin_schema.dump(job)
+        except IntegrityError:
+            return {
+                "error": f"Invalid hiring manager id provided, please try again."
+            }, 400
     else:
         return {"error": f"Job not found with id {id}"}, 404
 

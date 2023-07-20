@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+from marshmallow.exceptions import ValidationError
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -16,6 +17,10 @@ def create_app():
 
     # importing app configuration from config.py:
     app.config.from_object("config.app_config")
+
+    @app.errorhandler(ValidationError)
+    def validation_error(err):
+        return {"error": err.messages}, 400
 
     # initialising the app:
     db.init_app(app)
