@@ -11,15 +11,13 @@ from datetime import timedelta
 auth = Blueprint("auth", __name__, url_prefix="/auth")
 
 # POST method for new users to register:
+# note - data validation not working as completely intended at this point
 @auth.route("/register", methods=["POST"])
 def auth_register():
     try:
         body_data = request.get_json()
         user = User()
-        user.first_name = body_data.get("first_name")
-        user.last_name = body_data.get("last_name")
-        user.phone_number = body_data.get("phone_number") # need to add validation
-        user.email = body_data.get("email") # need to add email format validation
+        user.email = body_data.get("email")
         if body_data.get("password"):
             user.password = bcrypt.generate_password_hash(
                 body_data.get("password")

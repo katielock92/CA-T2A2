@@ -4,6 +4,8 @@ from controllers.applications_controller import applications
 from controllers.auth_controller import auth
 from controllers.interviews_controller import interviews
 from controllers.scorecards_controller import scorecards
+from controllers.staff_controller import staff
+from controllers.candiates_controller import candidates
 
 controllers = [
     jobs,
@@ -11,5 +13,7 @@ controllers = [
     applications,
     auth,
     interviews,
-    scorecards
+    scorecards,
+    staff, 
+    candidates
 ]

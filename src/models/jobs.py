@@ -18,18 +18,19 @@ class Job(db.Model):
     salary_budget = db.Column(
         db.Integer(), nullable=False
     )  # need to find SQL type for money if possible
-    hiring_manager_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    hiring_manager_id = db.Column(db.Integer, db.ForeignKey("staff.id"))
 
-    # adding child relationship with Users for HM users:
-    hiring_manager = db.relationship("User", back_populates="jobs")
+    # adding child relationship with Staff:
+    hiring_manager = db.relationship("Staff", back_populates="jobs")
 
     # adding parent relationship with Applications:
-    applications = db.relationship("Application", back_populates="job", cascade="all, delete")
+    applications = db.relationship("Application", back_populates="job") #cascade="all, delete"
 
 
 # creating a Schema with Marshmallow to allow us to serialise Jobs into JSON:
 class JobSchema(ma.Schema):
     # field validations:
+    # revisit these to ensure working as expected:
     title = fields.String(
         required=True,
         validate=And(
@@ -89,11 +90,11 @@ job_schema = JobSchema()
 jobs_schema = JobSchema(many=True)
 
 
-# additional Schema for displaying jobs to authenticated staff:
-class JobStaffViewSchema(ma.Schema):
+# additional Schema for displaying jobs to authorised staff who can see budget:
+class JobAdminSchema(ma.Schema):
     # nested schemas:
     hiring_manager = fields.Nested(
-        "UserSchema", only=["first_name", "last_name", "email"]
+        "StaffSchema", only=["name", "title"]
     )
 
     class Meta:
@@ -111,9 +112,35 @@ class JobStaffViewSchema(ma.Schema):
 
 
 # single job schema, when one job needs to be retrieved
-job_staff_view_schema = JobStaffViewSchema()
+job_admin_schema = JobAdminSchema()
 # multiple job schema, when many jobs need to be retrieved
-jobs_staff_view_schema = JobStaffViewSchema(many=True)
+jobs_admin_schema = JobAdminSchema(many=True)
+
+
+# additional Schema for displaying jobs to authorised staff who can't see budget:
+class JobStaffSchema(ma.Schema):
+    # nested schemas:
+    hiring_manager = fields.Nested(
+        "StaffSchema", only=["name", "title"]
+    )
+
+    class Meta:
+        fields = (
+            "id",
+            "title",
+            "department",
+            "location",
+            "description",
+            "hiring_manager",
+            "status"
+        )
+        ordered = True
+
+
+# single job schema, when one job needs to be retrieved
+job_staff_schema = JobStaffSchema()
+# multiple job schema, when many jobs need to be retrieved
+jobs_staff_schema = JobStaffSchema(many=True)
 
 
 # additional Schema for displaying jobs to non-authenticated users:

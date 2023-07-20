@@ -1,6 +1,6 @@
 from main import db
 from models.scorecards import Scorecard, scorecard_schema, scorecards_schema, scorecard_view_schema, scorecards_view_schema
-from models.users import User
+from models.staff import Staff
 
 from flask import Blueprint, jsonify, request
 from datetime import date, datetime
@@ -19,29 +19,33 @@ def authorise_as_admin(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
-        stmt = db.select(User).filter_by(id=user_id)
-        user = db.session.scalar(stmt)
-        if user.access_level == "Recruiter":
-            return fn(*args, **kwargs)
-        else:
-            return {
-                "error": "You are not authorised to perform this action - please contact a Recruiter"
-            }, 403
+        try:
+            stmt = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(stmt)
+            if user.admin:
+                return fn(*args, **kwargs)
+            else:
+                return {"error": "Not authorised to perform this action"}, 403
+        except AttributeError:
+            return {"error": "Not authorised to perform this action"}, 403
 
     return wrapper
 
 
-# creating wrapper function for authorised Recruiter/Hiring Manager only actions:
+# creating wrapper function for staff only actions:
 def authorise_as_staff(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
-        stmt = db.select(User).filter_by(id=user_id)
-        user = db.session.scalar(stmt)
-        if user.access_level == "Recruiter" or user.access_level == "Hiring Manager":
-            return fn(*args, **kwargs)
-        else:
-            return {"error": "You are not authorised to perform this action"}, 403
+        try:
+            stmt = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(stmt)
+            if user:
+                return fn(*args, **kwargs)
+            else:
+                return {"error": "Not authorised to perform this action"}, 403
+        except AttributeError:
+            return {"error": "Not authorised to perform this action"}, 403
 
     return wrapper
 

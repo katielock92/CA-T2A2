@@ -1,6 +1,8 @@
 from main import db, bcrypt
 from models.jobs import Job
 from models.users import User
+from models.candidates import Candidate
+from models.staff import Staff
 from models.applications import Application
 from models.interviews import Interview
 from models.scorecards import Scorecard
@@ -33,56 +35,51 @@ def seed_db():
     # create the test User objects:
     users = [
         User(
-            first_name="Elizabeth",
-            last_name="Riley",
-            phone_number="0478921643",
             email="elizabeth.riley@example.com",
             password=bcrypt.generate_password_hash("Kipper1977").decode("utf-8"),
-            access_level="Recruiter",
         ),
         User(
-            first_name="Irene",
-            last_name="Ryan",
-            phone_number="0478630399",
             email="irene.ryan@example.com",
             password=bcrypt.generate_password_hash("Turtle76").decode("utf-8"),
-            access_level="Hiring Manager",
         ),
         User(
-            first_name="Maurice",
-            last_name="Bailey",
-            phone_number="0432043448",
             email="maurice.bailey@example.com",
             password=bcrypt.generate_password_hash("Namaste55").decode("utf-8"),
-            access_level="Candidate",
         ),
         User(
-            first_name="Regina",
-            last_name="Taylor",
-            phone_number="0475319599",
             email="regina.taylor@example.com",
             password=bcrypt.generate_password_hash("Camden123").decode("utf-8"),
-            access_level="Recruiter"
         ),
         User(
-            first_name="Ray",
-            last_name="Torres",
-            phone_number="0459459728",
             email="ray.torres@example.com",
             password=bcrypt.generate_password_hash("Hughes92").decode("utf-8"),
-            access_level="Hiring Manager",
         ),
         User(
-            first_name="Alfred",
-            last_name="Campbell",
-            phone_number="0432484967",
             email="alfred.campbell@example.com",
             password=bcrypt.generate_password_hash("Tetsuo43").decode("utf-8"),
-            access_level="Candidate",
-        )    
+        ),
     ]
     db.session.add_all(users)
 
+    db.session.commit()
+
+    # create the test Staff and Candidate objects:
+
+    staff = [
+        Staff(name="Elizabeth Riley", user_id=1, title="Recruiter", admin=True),
+        Staff(name="Irene Ryan", user_id=2, title="Engineering Manager", admin=False),
+        Staff(name="Regina Taylor", user_id=4, title="Recruiter", admin=True),
+        Staff(name="Ray Torres", user_id=5, title="VP, Sales", admin=False),
+    ]
+
+    db.session.add_all(staff)
+
+    candidates = [
+        Candidate(name="Maurice Bailey", user_id=3, phone_number="0432043448"),
+        Candidate(name="Alfred Campbell", user_id=6, phone_number="0432484967"),
+    ]
+
+    db.session.add_all(candidates)
     db.session.commit()
 
     # create the test Job objects:
@@ -103,8 +100,8 @@ def seed_db():
             location="Sydney",
             status="Open",
             salary_budget=150000,
-            hiring_manager_id=5,
-        )
+            hiring_manager_id=4,
+        ),
     ]
     db.session.add_all(jobs)
 
@@ -115,23 +112,23 @@ def seed_db():
         Application(
             job_id=1,
             application_date=date.today(),
-            candidate_id=3,
+            candidate_id=1,
             location="Sydney",
             working_rights="Citizen",
             notice_period="2 weeks",
             salary_expectations=135000,
-            resume="https://www.docdroid.net/WyjIuyO/fake-resume-pdf"
+            resume="https://www.docdroid.net/WyjIuyO/fake-resume-pdf",
         ),
         Application(
             job_id=2,
             application_date=date.today(),
-            candidate_id=6,
+            candidate_id=2,
             location="Sydney",
             working_rights="Citizen",
             notice_period="4 weeks",
             salary_expectations=152000,
-            resume="https://www.docdroid.net/WyjIuyO/fake-resume-pdf"
-        )
+            resume="https://www.docdroid.net/WyjIuyO/fake-resume-pdf",
+        ),
     ]
     db.session.add_all(applications)
 
@@ -141,39 +138,40 @@ def seed_db():
     interviews = [
         Interview(
             application_id=1,
+            candidate_id=1,
             interview_datetime="2023-07-21 10:30:00",
             length_mins=20,
             format="Phone",
-            interviewer_id=1
+            interviewer_id=1,
         ),
         Interview(
-            application_id=2,
+            application_id=1,
+            candidate_id=1,
             interview_datetime="2023-07-25 14:00:00",
             length_mins=45,
             format="Video call",
-            interviewer_id=2
+            interviewer_id=2,
         ),
         Interview(
             application_id=2,
+            candidate_id=2,
             interview_datetime="2023-07-23 10:30:00",
             length_mins=20,
             format="Phone",
-            interviewer_id=1
+            interviewer_id=1,
         ),
     ]
     db.session.add_all(interviews)
 
     db.session.commit()
 
-
     # create the test Scorecard objects:
     scorecards = [
         Scorecard(
             scorecard_datetime=datetime.now(),
             interview_id=1,
-            interviewer_id=1,
             notes="Good candidate, fits what we're looking for and seems to be a culture fit. Proceed to next interview.",
-            rating=True,
+            rating="Yes",
         )
     ]
     db.session.add_all(scorecards)

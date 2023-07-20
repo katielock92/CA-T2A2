@@ -1,6 +1,8 @@
 from main import db
 from models.interviews import Interview, interview_schema, interviews_schema, interview_staff_view_schema, interviews_staff_view_schema, interview_view_schema, interviews_view_schema
-from models.users import User
+from models.staff import Staff
+from models.candidates import Candidate
+from models.applications import Application
 
 from flask import Blueprint, jsonify, request
 from datetime import date
@@ -19,29 +21,33 @@ def authorise_as_admin(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
-        stmt = db.select(User).filter_by(id=user_id)
-        user = db.session.scalar(stmt)
-        if user.access_level == "Recruiter":
-            return fn(*args, **kwargs)
-        else:
-            return {
-                "error": "You are not authorised to perform this action - please contact a Recruiter"
-            }, 403
+        try:
+            stmt = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(stmt)
+            if user.admin:
+                return fn(*args, **kwargs)
+            else:
+                return {"error": "Not authorised to perform this action"}, 403
+        except AttributeError:
+            return {"error": "Not authorised to perform this action"}, 403
 
     return wrapper
 
 
-# creating wrapper function for authorised Recruiter/Hiring Manager only actions:
+# creating wrapper function for staff only actions:
 def authorise_as_staff(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
-        stmt = db.select(User).filter_by(id=user_id)
-        user = db.session.scalar(stmt)
-        if user.access_level == "Recruiter" or user.access_level == "Hiring Manager":
-            return fn(*args, **kwargs)
-        else:
-            return {"error": "You are not authorised to perform this action"}, 403
+        try:
+            stmt = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(stmt)
+            if user:
+                return fn(*args, **kwargs)
+            else:
+                return {"error": "Not authorised to perform this action"}, 403
+        except AttributeError:
+            return {"error": "Not authorised to perform this action"}, 403
 
     return wrapper
 
@@ -58,26 +64,38 @@ def get_all_interviews():
     return jsonify(result)
 
 
-# lists user's interviews using a GET request - still a work in progress
+# lists user's interviews using a GET request:
 @interviews.route("/", methods=["GET"])
 @jwt_required()
 def get_my_interviews():
     user_id = get_jwt_identity()
-    # checks if the user has a Recruiter or Hiring Manager permission to see if we should check the interviewer_id:
-    stmt = db.select(User).filter_by(id=user_id)
-    user = db.session.scalar(stmt)
-    if user.access_level == "Recruiter" or user.access_level == "Hiring Manager":
-        interview_list = Interview.query.filter_by(format="Phone")
-        result = interview_staff_view_schema.dump(interview_list)
-        if len(result) == 0:
-            return {"message": f"No interviews found for {user_id}"}
-        else:
+    # checks for a matching interviewer id first via Staff:
+    try:
+        stmt = db.select(Staff).filter_by(user_id=user_id)
+        user = db.session.scalar(stmt)
+        interview_list = Interview.query.filter_by(interviewer_id=user.id)
+        result = interviews_staff_view_schema.dump(interview_list)
+        if len(result) > 0:
             return jsonify(result)
-        # if the user does not have this permission, returns the more simplified schema:
-    else:
-        return {"message": "No interviews found yet"}
-        #result = jobs_view_schema.dump(jobs_list)
-        #return jsonify(result)
+        else:
+            return {"message": "You have no scheduled interviews."}
+    except AttributeError:
+        pass # this will catch any users who are not in the Staff db and gracefully move them onto the next Try statement
+
+    try:
+        # checks for matching candidate instead:
+        stmt = db.select(Candidate).filter_by(user_id=user_id)
+        user = db.session.scalar(stmt)
+        interview_list = Interview.query.filter_by(candidate_id=user.id)
+        result = interviews_schema.dump(interview_list)
+        if len(result) > 0:
+            return jsonify(result)
+        else:
+            return {"message": "You have no scheduled interviews."}
+    except AttributeError:
+        # this will catch any registered users who are not yet in either the Staff or Candidate db:
+        return {"message": "You have no scheduled interviews."}
+   
 
 # allows an authorised user to create a new interview using a POST request:
 @interviews.route("/", methods=["POST"])
@@ -88,6 +106,7 @@ def create_interview():
         interview_fields = interview_schema.load(request.json)
         new_interview = Interview()
         new_interview.application_id = interview_fields["application_id"]
+        new_interview.candidate_id = interview_fields["candidate_id"] #update this later to pull based on application id?
         new_interview.interviewer_id = interview_fields["interviewer_id"]
         new_interview.interview_datetime = interview_fields["interview_datetime"]
         new_interview.length_mins = interview_fields["length_mins"]

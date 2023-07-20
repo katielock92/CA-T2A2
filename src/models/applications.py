@@ -1,8 +1,7 @@
 from main import db, ma
 
 from marshmallow import fields, validates
-from marshmallow.validate import Length, And, Regexp, OneOf
-from marshmallow.exceptions import ValidationError
+from marshmallow.validate import OneOf
 
 VALID_STATUSES = (
     "To review",
@@ -20,7 +19,7 @@ class Application(db.Model):
     job_id = db.Column(db.Integer, db.ForeignKey("jobs.id"), nullable=False)
     application_date = db.Column(db.String(), nullable=False)
     status = db.Column(db.String(), default="To review", nullable=False)
-    candidate_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    candidate_id = db.Column(db.Integer, db.ForeignKey("candidates.id"), nullable=False)
     location = db.Column(db.String(50), nullable=False)
     working_rights = db.Column(db.String(100), nullable=False)
     notice_period = db.Column(db.String(50), nullable=False)
@@ -30,11 +29,10 @@ class Application(db.Model):
 
     # adding parent relationship with Interviews:
     interviews = db.relationship(
-        "Interview", back_populates="application", cascade="all, delete"
-    )
+        "Interview", back_populates="application") #cascade="all, delete"
 
-    # adding child relationship with Users and Jobs:
-    candidate = db.relationship("User", back_populates="applications")
+    # adding child relationship with Candidates and Jobs:
+    candidate = db.relationship("Candidate", back_populates="applications")
     job = db.relationship("Job", back_populates="applications")
 
 
@@ -69,7 +67,7 @@ applications_schema = ApplicationSchema(many=True)
 class ApplicationStaffViewSchema(ma.Schema):
     # nested schemas:
     candidate = fields.Nested(
-        "UserSchema", only=["first_name", "last_name", "email", "phone_number"]
+        "CandidateSchema", only=["name", "phone_number"]
     )
     job = fields.Nested("JobSchema", only=["title"])
 
@@ -99,7 +97,7 @@ applications_staff_view_schema = ApplicationStaffViewSchema(many=True)
 class ApplicationViewSchema(ma.Schema):
     # nested schemas:
     candidate = fields.Nested(
-        "UserSchema", only=["first_name", "last_name", "email", "phone_number"]
+        "CandidateSchema", only=["name", "phone_number"]
     )
     job = fields.Nested("JobSchema", only=["title"])
 
@@ -127,7 +125,7 @@ applications_view_schema = ApplicationViewSchema(many=True)
 class ApplicationInterviewSchema(ma.Schema):
     # nested schemas:
     candidate = fields.Nested(
-        "UserSchema", only=["first_name", "last_name", "email", "phone_number"]
+        "CandidateSchema", only=["name", "phone_number"]
     )
     job = fields.Nested("JobSchema", only=["title"])
 

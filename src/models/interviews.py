@@ -1,8 +1,7 @@
 from main import db, ma
 
-from marshmallow import fields, validates
-from marshmallow.validate import Length, And, Regexp, OneOf
-from marshmallow.exceptions import ValidationError
+from marshmallow import fields
+from marshmallow.validate import OneOf
 
 VALID_FORMATS = ("Phone", "Video call")
 
@@ -12,17 +11,19 @@ class Interview(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     application_id = db.Column(db.Integer, db.ForeignKey("applications.id"), nullable=False)
-    interviewer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    candidate_id = db.Column(db.Integer, db.ForeignKey("candidates.id"), nullable=False)
+    interviewer_id = db.Column(db.Integer, db.ForeignKey("staff.id"), nullable=False)
     interview_datetime = db.Column(db.DateTime, nullable=False)
     length_mins = db.Column(db.Integer, nullable=False)
     format = db.Column(db.String(), nullable=False)
 
     # adding parent relationship with Scorecards:
-    scorecards = db.relationship("Scorecard", back_populates="interviews", cascade="all, delete")
+    scorecards = db.relationship("Scorecard", back_populates="interviews") #cascade="all, delete"
 
-    # add child relationships with Applications and Users (for Interviewer):
+    # add child relationships with Applications, Candidates and Staff:
     application = db.relationship("Application", back_populates="interviews")
-    interviewer = db.relationship("User", back_populates="interviews")
+    candidate = db.relationship("Candidate", back_populates="interviews")
+    interviewer = db.relationship("Staff", back_populates="interviews")
     
 
 
@@ -35,6 +36,7 @@ class InterviewSchema(ma.Schema):
         fields = (
             "id",
             "application_id",
+            "candidate_id",
             "interviewer_id",
             "interview_datetime",
             "length_mins",
@@ -53,7 +55,7 @@ interviews_schema = InterviewSchema(many=True)
 class InterviewStaffViewSchema(ma.Schema):
     # nested schemas:
     interviewer = fields.Nested(
-        "UserSchema", only=["first_name", "last_name", "email"]
+        "StaffSchema", only=["name", "title"]
     )
     application = fields.Nested(
         "ApplicationInterviewSchema"
