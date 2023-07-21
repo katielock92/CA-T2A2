@@ -3,8 +3,6 @@ from main import db, ma
 from marshmallow import fields
 from marshmallow.validate import OneOf
 
-VALID_FORMATS = ("Phone", "Video call")
-
 
 class Interview(db.Model):
     __tablename__ = "interviews"
@@ -30,13 +28,26 @@ class Interview(db.Model):
     interviewer = db.relationship("Staff", back_populates="interviews")
 
 
+# field validations for schemas:
+VALID_FORMATS = ("Phone", "Video call")
+
+validate_format = fields.String(
+    required=True,
+    validate=OneOf(VALID_FORMATS),
+    error="Format must be either 'Phone' or 'Video call' - please try again",
+)
+
+
 # create the primary Interview Schema with Marshmallow, it will provide the serialisation needed for converting the data into JSON
 class InterviewSchema(ma.Schema):
     # field validations:
-    format = fields.String(
-        validate=OneOf(VALID_FORMATS),
-        error="Format must be either 'Phone' or 'Video call' - please try again",
-    )
+    format = validate_format
+    application_id = fields.Integer(required=True)
+    #candidate_id = fields.Integer(required=True)
+    interviewer_id = fields.Integer(required=True)
+    length_mins = fields.Integer(required=True)
+    interview_datetime = fields.DateTime(required=True)
+
 
     class Meta:
         fields = (
@@ -60,6 +71,14 @@ class InterviewStaffViewSchema(ma.Schema):
     interviewer = fields.Nested("StaffSchema", only=["name", "title"])
     application = fields.Nested("ApplicationInterviewSchema")
 
+    # field validations:
+    format = validate_format
+    application_id = fields.Integer(required=True)
+    #candidate_id = fields.Integer(required=True)
+    interviewer_id = fields.Integer(required=True)
+    length_mins = fields.Integer(required=True)
+    interview_datetime = fields.DateTime(required=True)
+
     class Meta:
         fields = (
             "id",
@@ -77,15 +96,22 @@ interviews_staff_view_schema = InterviewStaffViewSchema(many=True)
 
 # additional Schema for displaying interviews to other authenticated users:
 
-
 class InterviewViewSchema(ma.Schema):
     # nested schemas:
+    interviewer = fields.Nested("StaffSchema", only=["name", "title"])
+
+    # field validations:
+    format = validate_format
+    application_id = fields.Integer(required=True)
+    #candidate_id = fields.Integer(required=True)
+    interviewer_id = fields.Integer(required=True)
+    length_mins = fields.Integer(required=True)
+    interview_datetime = fields.DateTime(required=True)
 
     class Meta:
         fields = (
             "id",
-            "application_id",
-            "interviewer_id",
+            "interviewer",
             "interview_datetime",
             "length_mins",
             "format",
@@ -105,10 +131,7 @@ class InterviewScorecardSchema(ma.Schema):
     interviewer = fields.Nested("StaffSchema", only=["name", "title"])
 
     class Meta:
-        fields = (
-            "application",
-            "interviewer"
-        )
+        fields = ("application", "interviewer")
 
 
 interview_scorecard_schema = InterviewScorecardSchema()

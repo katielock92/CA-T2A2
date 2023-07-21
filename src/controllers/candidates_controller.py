@@ -61,6 +61,8 @@ def create_candidate():
             }, 409
         
 
+# need to add a route for a candidate to edit their name/phone number
+
 # deletes a candidate using DELETE method, only admins can perform this action:
 @candidates.route("/<int:id>/", methods=["DELETE"])
 @jwt_required()

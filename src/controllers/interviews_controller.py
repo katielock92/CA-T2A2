@@ -114,10 +114,6 @@ def create_interview():
         db.session.add(new_interview)
         db.session.commit()
         return jsonify(interview_staff_view_schema.dump(new_interview)), 201
-    except KeyError:
-        return {
-            "error": "A required field has not been provided - please try again."
-        }, 409        
     except IntegrityError as err:
         if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
             return {
@@ -125,7 +121,7 @@ def create_interview():
             }, 409
         else:
             return {
-                "error": "Invalid application id or interviewer id provided, please try again."
+                "error": "Invalid id provided for application, candidate or interviewer, please try again."
             }, 409
 
 
@@ -138,7 +134,7 @@ def update_interview(id):
     query = db.select(Interview).filter_by(id=id)
     interview = db.session.scalar(query)
     if interview:
-        interview.interviewer_id = body_data.get("interview_id") or interview.interviewer_id
+        interview.interviewer_id = body_data.get("interviewer_id") or interview.interviewer_id
         interview.interview_datetime = body_data.get("interview_datetime") or interview.interview_datetime
         interview.format = body_data.get("format") or interview.format
         interview.length_mins = body_data.get("length_mins") or interview.length_mins

@@ -67,7 +67,9 @@ def create_staff():
             }, 409
         
 
-# allows an admin to update a staff member's admin permission using a PUT request:
+# need a route for a staff member to update their own name/title
+
+# allows an admin to update certain fields on a staff member using a PUT request:
 @staff.route("/<int:id>/", methods=["PUT"])
 @jwt_required()
 @authorise_as_admin
@@ -77,6 +79,8 @@ def update_staff_admin(id):
     staff = db.session.scalar(query)
     if staff:
         staff.admin = body_data.get("admin") or staff.admin
+        staff.name = body_data.get("name") or staff.name
+        staff.title = body_data.get("title") or staff.title
         db.session.commit()
         return staff_schema.dump(staff)
     else:
