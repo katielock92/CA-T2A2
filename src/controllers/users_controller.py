@@ -16,8 +16,8 @@ def authorise_as_admin(fn):
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
         try:
-            stmt = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(stmt)
+            query = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(query)
             if user.admin:
                 return fn(*args, **kwargs)
             else:
@@ -37,14 +37,17 @@ def get_users():
     result = users_schema.dump(users_list)
     return jsonify(result)
 
+# no add functionality within this controller as users are added via the auth controller instead
+
+# need to add an edit functionality for users to update their own details
 
 # allows an admin to delete a user using a DELETE request:
 @users.route("/<int:id>/", methods=["DELETE"])
 @jwt_required()
 @authorise_as_admin
 def delete_user(id):
-    stmt = db.select(User).filter_by(id=id)
-    user = db.session.scalar(stmt)
+    query = db.select(User).filter_by(id=id)
+    user = db.session.scalar(query)
     if user:
         db.session.delete(user)
         db.session.commit()

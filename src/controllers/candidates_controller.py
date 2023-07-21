@@ -6,7 +6,6 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 import functools
 from sqlalchemy.exc import IntegrityError
-from marshmallow import ValidationError
 from psycopg2 import errorcodes
 
 
@@ -19,8 +18,8 @@ def authorise_as_admin(fn):
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
         try:
-            stmt = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(stmt)
+            query = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(query)
             if user.admin:
                 return fn(*args, **kwargs)
             else:
@@ -55,10 +54,6 @@ def create_candidate():
         db.session.add(new_candidate)
         db.session.commit()
         return jsonify(candidate_schema.dump(new_candidate)), 201
-    except ValidationError:
-        return {
-            "error": "A required field has not been provided, please try again."
-        }, 409
     except IntegrityError as err:
         if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
             return {
@@ -71,8 +66,8 @@ def create_candidate():
 @jwt_required()
 @authorise_as_admin
 def delete_candidate(id):
-    stmt = db.select(Candidate).filter_by(id=id)
-    candidate = db.session.scalar(stmt)
+    query = db.select(Candidate).filter_by(id=id)
+    candidate = db.session.scalar(query)
     if candidate:
         db.session.delete(candidate)
         db.session.commit()

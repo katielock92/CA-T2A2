@@ -35,7 +35,7 @@ validate_title = fields.String(
         Length(max=100, error="Job title can only be a maximum of 100 characters long"),
         Regexp(
             "^[a-zA-Z0-9() -]+",
-            error="Title must contain only letters, numbers, spaces and certain special characters - please try again.",
+            error="Title can contain only letters, numbers, spaces and certain special characters - please try again.",
         ),
     ),
 )
@@ -47,7 +47,7 @@ validate_department = fields.String(
         Length(max=50, error="Department can only be a maximum of 50 characters long"),
         Regexp(
             "^[a-zA-Z0-9() -]+",
-            error="Department must contain only letters, numbers, spaces and certain special characters - please try again.",
+            error="Department can contain only letters, numbers, spaces and certain special characters - please try again.",
         ),
     ),
 )
@@ -58,7 +58,7 @@ validate_location = fields.String(
         Length(max=50, error="Location can only be a maximum of 50 characters long"),
         Regexp(
             "^[a-zA-Z0-9() -]+",
-            error="Location name must contain only letters, numbers, spaces and certain special characters - please try again.",
+            error="Location can contain only letters, numbers, spaces and certain special characters - please try again.",
         ),
     ),
 )

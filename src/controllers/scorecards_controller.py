@@ -1,5 +1,5 @@
 from main import db
-from models.scorecards import Scorecard, scorecard_schema, scorecards_schema, scorecard_view_schema, scorecards_view_schema
+from models.scorecards import Scorecard, scorecard_schema, scorecard_view_schema, scorecards_view_schema
 from models.staff import Staff
 
 from flask import Blueprint, jsonify, request
@@ -20,8 +20,8 @@ def authorise_as_admin(fn):
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
         try:
-            stmt = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(stmt)
+            query = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(query)
             if user.admin:
                 return fn(*args, **kwargs)
             else:
@@ -38,8 +38,8 @@ def authorise_as_staff(fn):
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
         try:
-            stmt = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(stmt)
+            query = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(query)
             if user:
                 return fn(*args, **kwargs)
             else:
@@ -72,20 +72,12 @@ def create_scorecard():
         new_scorecard = Scorecard()
         new_scorecard.scorecard_datetime = datetime.now()
         new_scorecard.interview_id = scorecard_fields["interview_id"]
-        new_scorecard.interviewer_id = scorecard_fields["interviewer_id"] # need some kind of validation that only the interviewer can complete or to prefill this from JWT
+        #somehow link to application id by the interview id?
         new_scorecard.notes = scorecard_fields["notes"]
         new_scorecard.rating = scorecard_fields["rating"]
         db.session.add(new_scorecard)
         db.session.commit()
-        return jsonify(scorecard_view_schema.dump(new_scorecard)), 201
-    except ValidationError:
-        return {
-            "error": "Interview format must be either 'Phone' or 'Video call' - please try again." #update this error message
-        }, 409
-    except KeyError:
-        return {
-            "error": "A required field has not been provided - please try again."
-        }, 409        
+        return jsonify(scorecard_view_schema.dump(new_scorecard)), 201   
     except IntegrityError as err:
         if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
             return {
@@ -93,7 +85,7 @@ def create_scorecard():
             }, 409
         else:
             return {
-                "error": "Invalid application id or interviewer id provided, please try again."
+                "error": "Invalid application id or interview id provided, please try again."
             }, 409
 
 
@@ -103,8 +95,8 @@ def create_scorecard():
 @authorise_as_admin
 def update_scorecard(id):
     body_data = scorecards.load(request.get_json(), partial=True)
-    stmt = db.select(Scorecard).filter_by(id=id)
-    scorecard = db.session.scalar(stmt)
+    query = db.select(Scorecard).filter_by(id=id)
+    scorecard = db.session.scalar(query)
     if scorecard:
         scorecard.notes = body_data.get("notes") or scorecard.notes
         scorecard.rating = body_data.get("rating") or scorecard.rating
@@ -114,13 +106,13 @@ def update_scorecard(id):
         return {"error": f"Scorecard not found with id {id}"}, 404
     
 
-# deletes an scorecard using DELETE method, only admins can perform this action:
+# deletes a scorecard using DELETE method, only admins can perform this action:
 @scorecards.route("/<int:id>/", methods=["DELETE"])
 @jwt_required()
 @authorise_as_admin
 def delete_scorecard(id):
-    stmt = db.select(Scorecard).filter_by(id=id)
-    scorecard = db.session.scalar(stmt)
+    query = db.select(Scorecard).filter_by(id=id)
+    scorecard = db.session.scalar(query)
     if scorecard:
         db.session.delete(scorecard)
         db.session.commit()

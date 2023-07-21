@@ -22,16 +22,13 @@ class User(db.Model):
 # creating a Schema with Marshmallow to allow us to serialise Users into JSON:
 class UserSchema(ma.Schema):
     # field validations:
-    email = fields.String(required=True, validate=Email)
-    password = fields.String(required=True, validate=Length(min=8))
+    email = fields.String(validate=Email)
+    password = fields.String(validate=Length(min=8))
 
     class Meta:
         fields = ("id", "email", "password")
         ordered = True
 
 
-# defining the schema for when a single user needs to be retrieved:
 user_schema = UserSchema(exclude=["password"])
-
-# defining the schema for when multiple users need to be retrieved:
 users_schema = UserSchema(many=True, exclude=["password"])

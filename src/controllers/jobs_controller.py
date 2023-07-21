@@ -43,8 +43,8 @@ def authorise_as_staff(fn):
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
         try:
-            stmt = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(stmt)
+            query = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(query)
             if user:
                 return fn(*args, **kwargs)
             else:
@@ -63,8 +63,8 @@ def get_open_jobs():
     # find a way to sort these?
     user_id = get_jwt_identity()
     # checks if a user is a staff member and returns a more detailed schema if they are:
-    stmt = db.select(Staff).filter_by(id=user_id)
-    user = db.session.scalar(stmt)
+    query = db.select(Staff).filter_by(id=user_id)
+    user = db.session.scalar(query)
     if user:
         if user.admin:
             result = jobs_admin_schema.dump(jobs_list)
@@ -85,9 +85,9 @@ def get_all_jobs():
     # find a way to sort these by id?
     jobs_list = Job.query.all()
     user_id = get_jwt_identity()
-    # checks if a user is a staff member and returns a more detailed schema if they are:
-    stmt = db.select(Staff).filter_by(id=user_id)
-    user = db.session.scalar(stmt)
+    # checks if a user is staff and returns a more detailed schema if they are:
+    query = db.select(Staff).filter_by(id=user_id)
+    user = db.session.scalar(query)
     if user:
         if user.admin:
             result = jobs_admin_schema.dump(jobs_list)
@@ -174,8 +174,8 @@ def create_job():
 @authorise_as_staff
 def update_job(id):
     body_data = job_schema.load(request.get_json(), partial=True)
-    stmt = db.select(Job).filter_by(id=id)
-    job = db.session.scalar(stmt)
+    query = db.select(Job).filter_by(id=id)
+    job = db.session.scalar(query)
     if job:
         try:
             job.title = body_data.get("title") or job.title
@@ -202,8 +202,8 @@ def update_job(id):
 @jwt_required()
 @authorise_as_admin
 def delete_job(id):
-    stmt = db.select(Job).filter_by(id=id)
-    job = db.session.scalar(stmt)
+    query = db.select(Job).filter_by(id=id)
+    job = db.session.scalar(query)
     if job:
         db.session.delete(job)
         db.session.commit()

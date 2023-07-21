@@ -1,6 +1,7 @@
 from main import db, ma
 
 from marshmallow import fields
+from marshmallow.validate import Length, And, Regexp, OneOf
 
 class Scorecard(db.Model):
     __tablename__ = "scorecards"
@@ -14,45 +15,50 @@ class Scorecard(db.Model):
     # add child relationship with Interviews:
     interviews = db.relationship("Interview", back_populates="scorecards")
 
+# field validations for schemas:
+VALID_STATUSES = ("Strong Yes", "Yes", "No Decision", "No", "Strong No")
+
 
 # create the Scorecard Schema with Marshmallow, it will provide the serialisation needed for converting the data into JSON
 class ScorecardSchema(ma.Schema):
 
     # field validations:
-    # add a one of validation for rating
+    interview_id = fields.Integer(required=True)
+    notes = fields.String(required=True)
+    rating = fields.String(required=True, validate=OneOf(VALID_STATUSES))
     class Meta:
         fields = (
             "id",
             "scorecard_datetime",
             "interview_id",
-            "application_id",
             "notes",
             "rating"
         )
 
 
-# single scorecard schema, when one scorecard needs to be retrieved
 scorecard_schema = ScorecardSchema()
-# multiple scorecards schema, when many scorecards need to be retrieved
 scorecards_schema = ScorecardSchema(many=True)
 
 # additional Schema for displaying scorecards to authenticated staff:
 class ScorecardViewSchema(ma.Schema):
     # nested schemas:
+    interview = fields.Nested("InterviewStaffViewSchema")
     
-# add some more nested schemas for scorecard here
+    # field validations:
+    interview_id = fields.Integer(required=True)
+    notes = fields.String(required=True)
+    rating = fields.String(required=True, validate=OneOf(VALID_STATUSES))
 
     class Meta:
         fields = (
             "id",
             "scorecard_datetime",
+            "interview_id",
             "interview",
             "notes",
             "rating"
         )
 
 
-# single scorecard schema, when one scorecard needs to be retrieved
 scorecard_view_schema = ScorecardViewSchema()
-# multiple scorecards schema, when many scorecards need to be retrieved
 scorecards_view_schema = ScorecardViewSchema(many=True)

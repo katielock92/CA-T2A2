@@ -29,14 +29,17 @@ def auth_register():
             return {"error": "Email address already in use, please login or register with a different email."}, 409
         if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
             return {"error": f"The '{err.orig.diag.column_name}' field is required, please try again."}, 409
+        else:
+            return {"error": "Uh oh!."}, 400
+
         
 
 # POST method for existing users to login:
 @auth.route("/login", methods=["POST"])
 def auth_login():
     body_data = request.get_json()
-    stmt = db.select(User).filter_by(email=body_data.get("email"))
-    user = db.session.scalar(stmt)
+    query = db.select(User).filter_by(email=body_data.get("email"))
+    user = db.session.scalar(query)
     if user and bcrypt.check_password_hash(user.password, body_data.get("password")):
         token = create_access_token(
             identity=str(user.id), expires_delta=timedelta(days=1)

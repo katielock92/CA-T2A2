@@ -1,5 +1,5 @@
 from main import db
-from models.interviews import Interview, interview_schema, interviews_schema, interview_staff_view_schema, interviews_staff_view_schema, interview_view_schema, interviews_view_schema
+from models.interviews import Interview, interview_schema, interview_staff_view_schema, interviews_staff_view_schema, interviews_view_schema
 from models.staff import Staff
 from models.candidates import Candidate
 from models.applications import Application
@@ -22,8 +22,8 @@ def authorise_as_admin(fn):
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
         try:
-            stmt = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(stmt)
+            query = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(query)
             if user.admin:
                 return fn(*args, **kwargs)
             else:
@@ -40,8 +40,8 @@ def authorise_as_staff(fn):
     def wrapper(*args, **kwargs):
         user_id = get_jwt_identity()
         try:
-            stmt = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(stmt)
+            query = db.select(Staff).filter_by(user_id=user_id)
+            user = db.session.scalar(query)
             if user:
                 return fn(*args, **kwargs)
             else:
@@ -71,8 +71,8 @@ def get_my_interviews():
     user_id = get_jwt_identity()
     # checks for a matching interviewer id first via Staff:
     try:
-        stmt = db.select(Staff).filter_by(user_id=user_id)
-        user = db.session.scalar(stmt)
+        query = db.select(Staff).filter_by(user_id=user_id)
+        user = db.session.scalar(query)
         interview_list = Interview.query.filter_by(interviewer_id=user.id)
         result = interviews_staff_view_schema.dump(interview_list)
         if len(result) > 0:
@@ -84,10 +84,10 @@ def get_my_interviews():
 
     try:
         # checks for matching candidate instead:
-        stmt = db.select(Candidate).filter_by(user_id=user_id)
-        user = db.session.scalar(stmt)
+        query = db.select(Candidate).filter_by(user_id=user_id)
+        user = db.session.scalar(query)
         interview_list = Interview.query.filter_by(candidate_id=user.id)
-        result = interviews_schema.dump(interview_list)
+        result = interviews_view_schema.dump(interview_list)
         if len(result) > 0:
             return jsonify(result)
         else:
@@ -114,10 +114,6 @@ def create_interview():
         db.session.add(new_interview)
         db.session.commit()
         return jsonify(interview_staff_view_schema.dump(new_interview)), 201
-    except ValidationError:
-        return {
-            "error": "Interview format must be either 'Phone' or 'Video call' - please try again."
-        }, 409
     except KeyError:
         return {
             "error": "A required field has not been provided - please try again."
@@ -139,8 +135,8 @@ def create_interview():
 @authorise_as_admin
 def update_interview(id):
     body_data = interview_schema.load(request.get_json(), partial=True)
-    stmt = db.select(Interview).filter_by(id=id)
-    interview = db.session.scalar(stmt)
+    query = db.select(Interview).filter_by(id=id)
+    interview = db.session.scalar(query)
     if interview:
         interview.interviewer_id = body_data.get("interview_id") or interview.interviewer_id
         interview.interview_datetime = body_data.get("interview_datetime") or interview.interview_datetime
@@ -157,8 +153,8 @@ def update_interview(id):
 @jwt_required()
 @authorise_as_admin
 def delete_interview(id):
-    stmt = db.select(Interview).filter_by(id=id)
-    interview = db.session.scalar(stmt)
+    query = db.select(Interview).filter_by(id=id)
+    interview = db.session.scalar(query)
     if interview:
         db.session.delete(interview)
         db.session.commit()
