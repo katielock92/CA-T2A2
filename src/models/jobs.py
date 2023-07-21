@@ -3,8 +3,6 @@ from main import db, ma
 from marshmallow import fields
 from marshmallow.validate import Length, And, Regexp, OneOf
 
-VALID_STATUSES = ("Open", "Closed")
-
 
 class Job(db.Model):
     __tablename__ = "jobs"
@@ -27,47 +25,55 @@ class Job(db.Model):
     )
 
 
-# creating a Schema with Marshmallow to allow us to serialise Jobs into JSON:
+# field validations for schemas:
+VALID_STATUSES = ("Open", "Closed")
+
+validate_title = fields.String(
+    required=True,
+    validate=And(
+        Length(min=4, error="Job title must be at least 4 characters long"),
+        Length(max=100, error="Job title can only be a maximum of 100 characters long"),
+        Regexp(
+            "^[a-zA-Z0-9() -]+",
+            error="Title must contain only letters, numbers, spaces and certain special characters - please try again.",
+        ),
+    ),
+)
+
+validate_department = fields.String(
+    required=True,
+    validate=And(
+        Length(min=2, error="Department must be at least 2 characters long"),
+        Length(max=50, error="Department can only be a maximum of 50 characters long"),
+        Regexp(
+            "^[a-zA-Z0-9() -]+",
+            error="Department must contain only letters, numbers, spaces and certain special characters - please try again.",
+        ),
+    ),
+)
+validate_location = fields.String(
+    required=True,
+    validate=And(
+        Length(min=2, error="Location must be at least 2 characters long"),
+        Length(max=50, error="Location can only be a maximum of 50 characters long"),
+        Regexp(
+            "^[a-zA-Z0-9() -]+",
+            error="Location name must contain only letters, numbers, spaces and certain special characters - please try again.",
+        ),
+    ),
+)
+
+
+# creating a primary Schema with Marshmallow to allow us to serialise Jobs into JSON:
 class JobSchema(ma.Schema):
     # field validations:
-    title = fields.String(
-        required=True,
-        validate=And(
-            Length(min=4, error="Job title must be at least 4 characters long"),
-            Length(
-                max=50, error="Job title can only be a maximum of 50 characters long"
-            ),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Title must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
-    department = fields.String(
-        required=True,
-        validate=And(
-            Length(min=2, error="Department must be at least 2 characters long"),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Department name must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
-    location = fields.String(
-        required=True,
-        validate=And(
-            Length(min=2, error="Location must be at least 2 characters long"),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Location name must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
+    title = validate_title
+    department = validate_department
+    location = validate_location
     description = fields.String(required=True)
     salary_budget = fields.Integer(required=True)
-
     hiring_manager_id = fields.Integer(required=True)
-    status = fields.String(required=True, validate=OneOf(VALID_STATUSES))
+    status = fields.String(validate=OneOf(VALID_STATUSES))
 
     class Meta:
         fields = (
@@ -83,9 +89,7 @@ class JobSchema(ma.Schema):
         ordered = True
 
 
-# single job schema, when one job needs to be retrieved
 job_schema = JobSchema()
-# multiple job schema, when many jobs need to be retrieved
 jobs_schema = JobSchema(many=True)
 
 
@@ -95,42 +99,11 @@ class JobAdminSchema(ma.Schema):
     hiring_manager = fields.Nested("StaffSchema", only=["name", "title"])
 
     # field validations:
-    title = fields.String(
-        required=True,
-        validate=And(
-            Length(min=4, error="Job title must be at least 4 characters long"),
-            Length(
-                max=50, error="Job title can only be a maximum of 50 characters long"
-            ),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Title must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
-    department = fields.String(
-        required=True,
-        validate=And(
-            Length(min=2, error="Department must be at least 2 characters long"),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Department name must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
-    location = fields.String(
-        required=True,
-        validate=And(
-            Length(min=2, error="Location must be at least 2 characters long"),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Location name must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
+    title = validate_title
+    department = validate_department
+    location = validate_location
     description = fields.String(required=True)
     salary_budget = fields.Integer(required=True)
-
     hiring_manager_id = fields.Integer(required=True)
     status = fields.String(required=True, validate=OneOf(VALID_STATUSES))
 
@@ -148,9 +121,7 @@ class JobAdminSchema(ma.Schema):
         ordered = True
 
 
-# single job schema, when one job needs to be retrieved
 job_admin_schema = JobAdminSchema()
-# multiple job schema, when many jobs need to be retrieved
 jobs_admin_schema = JobAdminSchema(many=True)
 
 
@@ -160,42 +131,10 @@ class JobStaffSchema(ma.Schema):
     hiring_manager = fields.Nested("StaffSchema", only=["name", "title"])
 
     # field validations:
-    title = fields.String(
-        required=True,
-        validate=And(
-            Length(min=4, error="Job title must be at least 4 characters long"),
-            Length(
-                max=50, error="Job title can only be a maximum of 50 characters long"
-            ),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Title must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
-    department = fields.String(
-        required=True,
-        validate=And(
-            Length(min=2, error="Department must be at least 2 characters long"),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Department name must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
-    location = fields.String(
-        required=True,
-        validate=And(
-            Length(min=2, error="Location must be at least 2 characters long"),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Location name must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
+    title = validate_title
+    department = validate_department
+    location = validate_location
     description = fields.String(required=True)
-    salary_budget = fields.Integer(required=True)
-
     hiring_manager_id = fields.Integer(required=True)
     status = fields.String(required=True, validate=OneOf(VALID_STATUSES))
 
@@ -212,52 +151,17 @@ class JobStaffSchema(ma.Schema):
         ordered = True
 
 
-# single job schema, when one job needs to be retrieved
 job_staff_schema = JobStaffSchema()
-# multiple job schema, when many jobs need to be retrieved
 jobs_staff_schema = JobStaffSchema(many=True)
 
 
 # additional Schema for displaying jobs to non-authenticated users:
 class JobViewSchema(ma.Schema):
     # field validations:
-    title = fields.String(
-        required=True,
-        validate=And(
-            Length(min=4, error="Job title must be at least 4 characters long"),
-            Length(
-                max=50, error="Job title can only be a maximum of 50 characters long"
-            ),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Title must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
-    department = fields.String(
-        required=True,
-        validate=And(
-            Length(min=2, error="Department must be at least 2 characters long"),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Department name must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
-    location = fields.String(
-        required=True,
-        validate=And(
-            Length(min=2, error="Location must be at least 2 characters long"),
-            Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Location name must contain only letters, numbers, spaces and certain special characters - please try again.",
-            ),
-        ),
-    )
+    title = validate_title
+    department = validate_department
+    location = validate_location
     description = fields.String(required=True)
-    salary_budget = fields.Integer(required=True)
-
-    hiring_manager_id = fields.Integer(required=True)
     status = fields.String(required=True, validate=OneOf(VALID_STATUSES))
 
     class Meta:
@@ -265,7 +169,5 @@ class JobViewSchema(ma.Schema):
         ordered = True
 
 
-# single job schema, when one job needs to be retrieved
 job_view_schema = JobViewSchema()
-# multiple job schema, when many jobs need to be retrieved
 jobs_view_schema = JobViewSchema(many=True)
