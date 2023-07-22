@@ -44,21 +44,26 @@ def get_candidates():
 @candidates.route("/", methods=["POST"])
 @jwt_required()
 def create_candidate():
-    # need to check if there is already a candidate for this user before continuing
-    try:
-        candidate_fields = candidate_schema.load(request.json)
-        new_candidate = Candidate()
-        new_candidate.name = candidate_fields["name"]
-        new_candidate.phone_number = candidate_fields["phone_number"]
-        new_candidate.user_id = get_jwt_identity()
-        db.session.add(new_candidate)
-        db.session.commit()
-        return jsonify(candidate_schema.dump(new_candidate)), 201
-    except IntegrityError as err:
-        if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
-            return {
-                "error": f"The '{err.orig.diag.column_name}' field is required, please try again."
-            }, 409
+    user_id = get_jwt_identity()
+    query = db.select(Candidate).filter_by(user_id=user_id)
+    candidate = db.session.scalar(query)
+    if candidate:
+        return {"error": "Candidate record already exists for your user id"}, 409
+    else:
+        try:
+            candidate_fields = candidate_schema.load(request.json)
+            new_candidate = Candidate()
+            new_candidate.name = candidate_fields["name"]
+            new_candidate.phone_number = candidate_fields["phone_number"]
+            new_candidate.user_id = get_jwt_identity()
+            db.session.add(new_candidate)
+            db.session.commit()
+            return jsonify(candidate_schema.dump(new_candidate)), 201
+        except IntegrityError as err:
+            if err.orig.pgcode == errorcodes.NOT_NULL_VIOLATION:
+                return {
+                    "error": f"The '{err.orig.diag.column_name}' field is required, please try again."
+                }, 409
 
 
 # allows a candidate user to update their own details using a PUT request:
