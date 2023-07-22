@@ -3,7 +3,7 @@ from models.staff import Staff, staff_schema, staffs_schema
 from controllers.auth_controller import authorise_as_admin
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import IntegrityError
 from psycopg2 import errorcodes
 
@@ -47,7 +47,21 @@ def create_staff():
             return {"error": "Invalid user id provided, please try again."}, 404
 
 
-# need a route for a staff member to update their own name/title
+# allows a Staff user to update their own profile using a PUT request:
+@staff.route("/", methods=["PUT"])
+@jwt_required()
+def update_staff():
+    user_id = get_jwt_identity()
+    body_data = staff_schema.load(request.get_json(), partial=True)
+    query = db.select(Staff).filter_by(user_id=user_id)
+    staff = db.session.scalar(query)
+    if staff:
+        staff.name = body_data.get("name") or staff.name
+        staff.title = body_data.get("title") or staff.title
+        db.session.commit()
+        return staff_schema.dump(staff)
+    else:
+        return {"error": "You do not have a Staff record to update"}, 404
 
 
 # allows an admin to update certain fields on a staff member using a PUT request:

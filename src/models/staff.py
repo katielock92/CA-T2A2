@@ -30,7 +30,7 @@ class StaffSchema(ma.Schema):
         validate=And(
             Length(max=100, error="Name can only be a maximum of 100 characters long"),
             Regexp(
-                "^[a-zA-Z -]+",
+                "^[a-zA-Z -]+$",
                 error="Name can contain only letters, spaces and hyphens - please try again.",
             ),
         ),
@@ -42,8 +42,8 @@ class StaffSchema(ma.Schema):
             Length(min=4, error="Title must be at least 4 characters long"),
             Length(max=50, error="Title can only be a maximum of 100 characters long"),
             Regexp(
-                "^[a-zA-Z0-9() -]+",
-                error="Title can contain only letters, numbers, spaces and certain special characters - please try again.",
+                "^[a-zA-Z0-9 -()]+$",
+                error="Title can contain only letters, numbers and certain special characters - please try again.",
             ),
         ),
     )
