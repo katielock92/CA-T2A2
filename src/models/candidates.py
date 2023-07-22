@@ -18,11 +18,11 @@ class Candidate(db.Model):
 
     # adding parent relationship with Applications and Interviews:
     applications = db.relationship(
-        "Application", back_populates="candidate"
-    )  # cascade="all, delete"
+        "Application", back_populates="candidate", cascade="all, delete"
+    )
     interviews = db.relationship(
-        "Interview", back_populates="candidate"
-    )  # cascade="all, delete"
+        "Interview", back_populates="candidate", cascade="all, delete"
+    )
 
     # adding child relationship with Users:
     user = db.relationship("User", back_populates="candidates")
@@ -36,7 +36,7 @@ class CandidateSchema(ma.Schema):
         validate=And(
             Length(max=100, error="Name can only be a maximum of 100 characters long"),
             Regexp(
-                "^[a-zA-Z -]+",
+                "^[a-zA-Z -]+$",
                 error="Name can contain only letters, spaces and hyphens - please try again.",
             ),
         ),

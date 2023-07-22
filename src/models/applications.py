@@ -21,7 +21,7 @@ class Application(db.Model):
 
     # adding parent relationship with Interviews:
     interviews = db.relationship(
-        "Interview", back_populates="application") #cascade="all, delete"
+        "Interview", back_populates="application", cascade="all, delete")
 
     # adding child relationship with Candidates and Jobs:
     candidate = db.relationship("Candidate", back_populates="applications")
@@ -43,7 +43,7 @@ validate_location = fields.String(
         Length(min=2, error="Location must be at least 2 characters long"),
         Length(max=50, error="Location can only be a maximum of 50 characters long"),
         Regexp(
-            "^[a-zA-Z0-9() -]+",
+            "^[a-zA-Z0-9() -]+$",
             error="Location can contain only letters, numbers, spaces and certain special characters - please try again.",
         ),
     ),
@@ -55,7 +55,7 @@ validate_working_rights = fields.String(
         Length(min=2, error="Working rights must be at least 2 characters long"),
         Length(max=50, error="Working rights can only be a maximum of 50 characters long"),
         Regexp(
-            "^[a-zA-Z0-9() -]+",
+            "^[a-zA-Z0-9() -]+$",
             error="Working rights can contain only letters, numbers, spaces and certain special characters - please try again.",
         ),
     ),
@@ -67,7 +67,7 @@ validate_notice_period = fields.String(
         Length(min=2, error="Notice period must be at least 2 characters long"),
         Length(max=50, error="Notice period can only be a maximum of 50 characters long"),
         Regexp(
-            "^[a-zA-Z0-9() -]+",
+            "^[a-zA-Z0-9() -]+$",
             error="Notice period can contain only letters, numbers, spaces and certain special characters - please try again.",
         ),
     ),

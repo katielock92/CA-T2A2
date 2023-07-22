@@ -19,8 +19,8 @@ class Interview(db.Model):
 
     # adding parent relationship with Scorecards:
     scorecards = db.relationship(
-        "Scorecard", back_populates="interviews"
-    )  # cascade="all, delete"
+        "Scorecard", back_populates="interviews", cascade="all, delete"
+    )
 
     # add child relationships with Applications, Candidates and Staff:
     application = db.relationship("Application", back_populates="interviews")
@@ -29,12 +29,12 @@ class Interview(db.Model):
 
 
 # field validations for schemas:
-VALID_FORMATS = ("Phone", "Video call")
+VALID_FORMATS = ("Phone", "Video call", "In person")
 
 validate_format = fields.String(
     required=True,
     validate=OneOf(VALID_FORMATS),
-    error="Format must be either 'Phone' or 'Video call' - please try again",
+    error="Format must be either 'Phone', 'Video call' or 'In person' - please try again",
 )
 
 
@@ -43,7 +43,7 @@ class InterviewSchema(ma.Schema):
     # field validations:
     format = validate_format
     application_id = fields.Integer(required=True)
-    #candidate_id = fields.Integer(required=True)
+    candidate_id = fields.Integer(required=True)
     interviewer_id = fields.Integer(required=True)
     length_mins = fields.Integer(required=True)
     interview_datetime = fields.DateTime(required=True)
@@ -74,7 +74,7 @@ class InterviewStaffViewSchema(ma.Schema):
     # field validations:
     format = validate_format
     application_id = fields.Integer(required=True)
-    #candidate_id = fields.Integer(required=True)
+    candidate_id = fields.Integer(required=True)
     interviewer_id = fields.Integer(required=True)
     length_mins = fields.Integer(required=True)
     interview_datetime = fields.DateTime(required=True)
@@ -103,7 +103,7 @@ class InterviewViewSchema(ma.Schema):
     # field validations:
     format = validate_format
     application_id = fields.Integer(required=True)
-    #candidate_id = fields.Integer(required=True)
+    candidate_id = fields.Integer(required=True)
     interviewer_id = fields.Integer(required=True)
     length_mins = fields.Integer(required=True)
     interview_datetime = fields.DateTime(required=True)
