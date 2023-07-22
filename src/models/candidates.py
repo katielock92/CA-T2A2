@@ -9,7 +9,9 @@ class Candidate(db.Model):
 
     # columns for the Candidate table:
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False
+    )
     name = db.Column(db.String(100), nullable=False)
     # string used for phone number so that leading zeroes aren't dropped and certain special characters are allowed:
     phone_number = db.Column(db.String(20), nullable=False)

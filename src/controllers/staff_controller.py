@@ -41,8 +41,10 @@ def create_staff():
             return {
                 "error": f"The '{err.orig.diag.column_name}' field is required, please try again."
             }, 409
+        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
+            return {"error": "Staff record already exists for this user id"}, 409
         else:
-            return {"error": "Invalid user id provided, please try again."}, 409
+            return {"error": "Invalid user id provided, please try again."}, 404
 
 
 # need a route for a staff member to update their own name/title

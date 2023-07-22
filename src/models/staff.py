@@ -9,7 +9,7 @@ class Staff(db.Model):
 
     # columns for the Staff table:
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     title = db.Column(db.String(50), nullable=False)
     admin = db.Column(db.Boolean, default=False)
@@ -54,8 +54,5 @@ class StaffSchema(ma.Schema):
         ordered = True
 
 
-# defining the schema for when a single user needs to be retrieved:
 staff_schema = StaffSchema()
-
-# defining the schema for when multiple users need to be retrieved:
 staffs_schema = StaffSchema(many=True)

@@ -45,6 +45,8 @@ def create_candidate():
                 return {
                     "error": f"The '{err.orig.diag.column_name}' field is required, please try again."
                 }, 409
+            if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
+                return {"error": "Candidate record already exists for your user id"}, 409
 
 
 # allows a candidate user to update their own details using a PUT request:
