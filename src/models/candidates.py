@@ -60,8 +60,5 @@ class CandidateSchema(ma.Schema):
         ordered = True
 
 
-# defining the schema for when a single candidate needs to be retrieved:
 candidate_schema = CandidateSchema()
-
-# defining the schema for when multiple candidates need to be retrieved:
 candidates_schema = CandidateSchema(many=True)
