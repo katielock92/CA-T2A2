@@ -29,7 +29,6 @@ class Candidate(db.Model):
 # creating a Schema with Marshmallow to allow us to serialise Candidates into JSON:
 class CandidateSchema(ma.Schema):
     # field validations:
-    # validations not working as expected, revisit these
     name = fields.String(
         required=True,
         validate=And(

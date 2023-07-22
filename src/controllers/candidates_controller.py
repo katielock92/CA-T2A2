@@ -59,9 +59,24 @@ def create_candidate():
             return {
                 "error": f"The '{err.orig.diag.column_name}' field is required, please try again."
             }, 409
-        
 
-# need to add a route for a candidate to edit their name/phone number
+
+# allows a candidate user to update their own details using a PUT request:
+@candidates.route("/", methods=["PUT"])
+@jwt_required()
+def update_candidate():
+    user_id = get_jwt_identity()
+    body_data = candidate_schema.load(request.get_json(), partial=True)
+    query = db.select(Candidate).filter_by(user_id=user_id)
+    candidate = db.session.scalar(query)
+    if candidate:
+        candidate.name = body_data.get("name") or candidate.name
+        candidate.phone_number = body_data.get("phone_number") or candidate.phone_number
+        db.session.commit()
+        return candidate_schema.dump(candidate)
+    else:
+        return {"error": "You do not have a Candidate record to update"}, 404
+
 
 # deletes a candidate using DELETE method, only admins can perform this action:
 @candidates.route("/<int:id>/", methods=["DELETE"])
@@ -73,6 +88,8 @@ def delete_candidate(id):
     if candidate:
         db.session.delete(candidate)
         db.session.commit()
-        return {"message": f"The candidate with the id {id} has been deleted successfully"}
+        return {
+            "message": f"The candidate with the id {id} has been deleted successfully"
+        }
     else:
         return {"error": f"Candidate not found with id {id}"}, 404
