@@ -1,56 +1,22 @@
 from main import db
-from models.interviews import Interview, interview_schema, interview_staff_view_schema, interviews_staff_view_schema, interviews_view_schema
 from models.staff import Staff
 from models.candidates import Candidate
-from models.applications import Application
+from models.interviews import (
+    Interview,
+    interview_schema,
+    interview_staff_view_schema,
+    interviews_staff_view_schema,
+    interviews_view_schema,
+)
+from controllers.auth_controller import authorise_as_admin, authorise_as_staff
 
 from flask import Blueprint, jsonify, request
-from datetime import date
 from flask_jwt_extended import jwt_required, get_jwt_identity
-import functools
 from sqlalchemy.exc import IntegrityError
-from marshmallow import ValidationError
 from psycopg2 import errorcodes
 
 
 interviews = Blueprint("interviews", __name__, url_prefix="/interviews")
-
-
-# creating wrapper function for admin authorised actions:
-def authorise_as_admin(fn):
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        try:
-            query = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(query)
-            if user.admin:
-                return fn(*args, **kwargs)
-            else:
-                return {"error": "Not authorised to perform this action"}, 403
-        except AttributeError:
-            return {"error": "Not authorised to perform this action"}, 403
-
-    return wrapper
-
-
-# creating wrapper function for staff only actions:
-def authorise_as_staff(fn):
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        try:
-            query = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(query)
-            if user:
-                return fn(*args, **kwargs)
-            else:
-                return {"error": "Not authorised to perform this action"}, 403
-        except AttributeError:
-            return {"error": "Not authorised to perform this action"}, 403
-
-    return wrapper
-
 
 
 # lists all interviews using a GET request, only admins can perform this action:
@@ -80,7 +46,7 @@ def get_my_interviews():
         else:
             return {"message": "You have no scheduled interviews."}
     except AttributeError:
-        pass # this will catch any users who are not in the Staff db and gracefully move them onto the next Try statement
+        pass  # this will catch any users who are not in the Staff db and gracefully move them onto the next Try statement
 
     try:
         # checks for matching candidate instead:
@@ -95,7 +61,7 @@ def get_my_interviews():
     except AttributeError:
         # this will catch any registered users who are not yet in either the Staff or Candidate db:
         return {"message": "You have no scheduled interviews."}
-   
+
 
 # allows an authorised user to create a new interview using a POST request:
 @interviews.route("/", methods=["POST"])
@@ -106,7 +72,9 @@ def create_interview():
         interview_fields = interview_schema.load(request.json)
         new_interview = Interview()
         new_interview.application_id = interview_fields["application_id"]
-        new_interview.candidate_id = interview_fields["candidate_id"] #update this later to pull based on application id?
+        new_interview.candidate_id = interview_fields[
+            "candidate_id"
+        ]  # update this later to pull based on application id?
         new_interview.interviewer_id = interview_fields["interviewer_id"]
         new_interview.interview_datetime = interview_fields["interview_datetime"]
         new_interview.length_mins = interview_fields["length_mins"]
@@ -134,15 +102,19 @@ def update_interview(id):
     query = db.select(Interview).filter_by(id=id)
     interview = db.session.scalar(query)
     if interview:
-        interview.interviewer_id = body_data.get("interviewer_id") or interview.interviewer_id
-        interview.interview_datetime = body_data.get("interview_datetime") or interview.interview_datetime
+        interview.interviewer_id = (
+            body_data.get("interviewer_id") or interview.interviewer_id
+        )
+        interview.interview_datetime = (
+            body_data.get("interview_datetime") or interview.interview_datetime
+        )
         interview.format = body_data.get("format") or interview.format
         interview.length_mins = body_data.get("length_mins") or interview.length_mins
         db.session.commit()
         return interview_staff_view_schema.dump(interview)
     else:
         return {"error": f"Interview not found with id {id}"}, 404
-    
+
 
 # deletes an application using DELETE method, only admins can perform this action:
 @interviews.route("/<int:id>/", methods=["DELETE"])
@@ -154,6 +126,8 @@ def delete_interview(id):
     if interview:
         db.session.delete(interview)
         db.session.commit()
-        return {"message": f"The interview with the id {id} has been deleted successfully"}
+        return {
+            "message": f"The interview with the id {id} has been deleted successfully"
+        }
     else:
         return {"error": f"Interview not found with id {id}"}, 404

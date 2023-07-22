@@ -9,50 +9,14 @@ from models.jobs import (
 )
 from models.applications import Application, applications_staff_view_schema
 from models.staff import Staff
+from controllers.auth_controller import authorise_as_admin, authorise_as_staff
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-import functools
 from sqlalchemy.exc import IntegrityError
 from psycopg2 import errorcodes
 
 jobs = Blueprint("jobs", __name__, url_prefix="/jobs")
-
-
-# creating wrapper function for admin authorised actions:
-def authorise_as_admin(fn):
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        try:
-            stmt = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(stmt)
-            if user.admin:
-                return fn(*args, **kwargs)
-            else:
-                return {"error": "Not authorised to perform this action"}, 403
-        except AttributeError:
-            return {"error": "Not authorised to perform this action"}, 403
-
-    return wrapper
-
-
-# creating wrapper function for staff only actions:
-def authorise_as_staff(fn):
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        try:
-            query = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(query)
-            if user:
-                return fn(*args, **kwargs)
-            else:
-                return {"error": "Not authorised to perform this action"}, 403
-        except AttributeError:
-            return {"error": "Not authorised to perform this action"}, 403
-
-    return wrapper
 
 
 # lists open jobs using a GET request:

@@ -1,33 +1,14 @@
 from main import db
-from models.staff import Staff
 from models.candidates import Candidate, candidate_schema, candidates_schema
+from controllers.auth_controller import authorise_as_admin
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-import functools
 from sqlalchemy.exc import IntegrityError
 from psycopg2 import errorcodes
 
 
 candidates = Blueprint("candidates", __name__, url_prefix="/candidates")
-
-
-# creating wrapper function for admin authorised actions:
-def authorise_as_admin(fn):
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
-        try:
-            query = db.select(Staff).filter_by(user_id=user_id)
-            user = db.session.scalar(query)
-            if user.admin:
-                return fn(*args, **kwargs)
-            else:
-                return {"error": "Not authorised to perform this action"}, 403
-        except AttributeError:
-            return {"error": "Not authorised to perform this action"}, 403
-
-    return wrapper
 
 
 # lists all candidates using a GET request, only available to admins:
