@@ -30,7 +30,6 @@ def drop_db():
 # Commands to seed the database tables:
 @db_commands.cli.command("seed")
 def seed_db():
-    # add information here for what to seed and add to the database:
 
     # create the test User objects:
     users = [

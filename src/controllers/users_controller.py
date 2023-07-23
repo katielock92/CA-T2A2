@@ -14,15 +14,15 @@ users = Blueprint("users", __name__, url_prefix="/users")
 @jwt_required()
 @authorise_as_admin
 def get_users():
-    users_list = User.query.all()
+    users_list = User.query.order_by(User.id).all()
     result = users_view_schema.dump(users_list)
     return jsonify(result)
 
 
 # no add functionality within this controller as users are added via the auth controller instead
 
-# allows a user to update their own login email or password using a PUT method:
-@users.route("/", methods=["PUT"])
+# allows a user to update their own login email or password using a PUT or PATCH method:
+@users.route("/", methods=["PUT", "PATCH"])
 @jwt_required()
 def update_users():
     user_id = get_jwt_identity()

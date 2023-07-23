@@ -16,7 +16,7 @@ staff = Blueprint("staff", __name__, url_prefix="/staff")
 @jwt_required()
 @authorise_as_admin
 def get_staff():
-    staff_list = Staff.query.all()
+    staff_list = Staff.query.order_by(Staff.id).all()
     result = staffs_schema.dump(staff_list)
     return jsonify(result)
 
@@ -47,8 +47,8 @@ def create_staff():
             return {"error": "Invalid user id provided, please try again."}, 404
 
 
-# allows a Staff user to update their own profile using a PUT request:
-@staff.route("/", methods=["PUT"])
+# allows a Staff user to update their own profile using a PUT or PATCH request:
+@staff.route("/", methods=["PUT", "PATCH"])
 @jwt_required()
 def update_staff():
     user_id = get_jwt_identity()

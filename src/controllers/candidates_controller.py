@@ -16,7 +16,7 @@ candidates = Blueprint("candidates", __name__, url_prefix="/candidates")
 @jwt_required()
 @authorise_as_admin
 def get_candidates():
-    candidates_list = Candidate.query.all()
+    candidates_list = Candidate.query.order_by(Candidate.id).all()
     result = candidates_schema.dump(candidates_list)
     return jsonify(result)
 
@@ -49,8 +49,8 @@ def create_candidate():
                 return {"error": "Candidate record already exists for your user id"}, 409
 
 
-# allows a candidate user to update their own details using a PUT request:
-@candidates.route("/", methods=["PUT"])
+# allows a candidate user to update their own details using a PUT or PATCH request:
+@candidates.route("/", methods=["PUT", "PATCH"])
 @jwt_required()
 def update_candidate():
     user_id = get_jwt_identity()

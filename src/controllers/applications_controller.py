@@ -26,8 +26,8 @@ applications = Blueprint("applications", __name__, url_prefix="/applications")
 @authorise_as_admin
 def get_all_applications():
     applications_list = (
-        Application.query.all()
-    )  # need to update for some kind of sort order?
+        Application.query.order_by(Application.application_date).all()
+    )
     result = applications_staff_view_schema.dump(applications_list)
     return jsonify(result)
 
@@ -79,8 +79,8 @@ def create_application():
         }, 401
 
 
-# allows an admin to update an application status using a PUT request:
-@applications.route("/<int:id>/", methods=["PUT"])
+# allows an admin to update an application status using a PUT or PATCH request:
+@applications.route("/<int:id>/", methods=["PUT", "PATCH"])
 @jwt_required()
 @authorise_as_admin
 def update_application(id):

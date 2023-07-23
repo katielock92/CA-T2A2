@@ -49,7 +49,6 @@ auth = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 # POST method for new users to register:
-# note - data validation not working as completely intended at this point
 @auth.route("/register", methods=["POST"])
 def auth_register():
     try:

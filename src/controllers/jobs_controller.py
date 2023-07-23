@@ -23,8 +23,7 @@ jobs = Blueprint("jobs", __name__, url_prefix="/jobs")
 @jobs.route("/", methods=["GET"])
 @jwt_required(optional=True)
 def get_open_jobs():
-    jobs_list = Job.query.filter_by(status="Open")
-    # find a way to sort these?
+    jobs_list = Job.query.order_by(Job.id).filter_by(status="Open")
     user_id = get_jwt_identity()
     # checks if a user is a staff member and returns a more detailed schema if they are:
     query = db.select(Staff).filter_by(id=user_id)
@@ -46,8 +45,7 @@ def get_open_jobs():
 @jobs.route("/all/", methods=["GET"])
 @jwt_required(optional=True)
 def get_all_jobs():
-    # find a way to sort these by id?
-    jobs_list = Job.query.all()
+    jobs_list = Job.query.order_by(Job.id).all()
     user_id = get_jwt_identity()
     # checks if a user is staff and returns a more detailed schema if they are:
     query = db.select(Staff).filter_by(id=user_id)
@@ -96,8 +94,7 @@ def get_one_job(id):
 @jwt_required()
 @authorise_as_staff
 def get_job_applications(id):
-    applications_list = Application.query.filter_by(job_id=id)
-    # find a way to sort these by date?
+    applications_list = Application.query.order_by(Application.application_date).filter_by(job_id=id)
     if applications_list:
         return applications_staff_view_schema.dump(applications_list)
     else:
@@ -132,8 +129,8 @@ def create_job():
             }, 400
 
 
-# allows an authorised staff member to update a job using a PUT or POST request:
-@jobs.route("/<int:id>/", methods=["PUT", "POST"])
+# allows an authorised staff member to update a job using a PUT or PATCH request:
+@jobs.route("/<int:id>/", methods=["PUT", "PATCH"])
 @jwt_required()
 @authorise_as_staff
 def update_job(id):
