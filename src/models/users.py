@@ -1,7 +1,7 @@
 from main import db, ma
 
 from marshmallow import fields
-from marshmallow.validate import Email, Length
+from marshmallow.validate import Length, Regexp
 
 
 class User(db.Model):
@@ -19,16 +19,36 @@ class User(db.Model):
     staff = db.relationship("Staff", back_populates="user", cascade="all, delete")
 
 
-# creating a Schema with Marshmallow to allow us to serialise Users into JSON:
+# creating a primary Schema with Marshmallow to allow us to serialise Users into JSON:
 class UserSchema(ma.Schema):
     # field validations:
-    email = fields.String(validate=Email)
-    password = fields.String(validate=Length(min=8))
+    email = fields.String(validate=Regexp(
+                "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",
+                error="Invalid email address, please try again",
+            ))
+    password = fields.String(validate=Length(min=8), error="Password must be at least 8 characters")
 
     class Meta:
         fields = ("id", "email", "password")
         ordered = True
 
 
-user_schema = UserSchema(exclude=["password"])
-users_schema = UserSchema(many=True, exclude=["password"])
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
+
+# creating a primary Schema with Marshmallow to allow us to serialise Users into JSON:
+class UserViewSchema(ma.Schema):
+    # field validations:
+    email = fields.String(validate=Regexp(
+                "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)",
+                error="Invalid email address, please try again",
+            ))
+    password = fields.String(validate=Length(min=8), error="Password must be at least 8 characters")
+
+    class Meta:
+        fields = ("id", "email")
+        ordered = True
+
+
+user_view_schema = UserViewSchema()
+users_view_schema = UserViewSchema(many=True)

@@ -1,5 +1,5 @@
 from main import db, bcrypt
-from models.users import User, user_schema
+from models.users import User, user_schema, user_view_schema
 from models.staff import Staff
 
 from flask import Blueprint, request
@@ -53,16 +53,13 @@ auth = Blueprint("auth", __name__, url_prefix="/auth")
 @auth.route("/register", methods=["POST"])
 def auth_register():
     try:
-        body_data = request.get_json()
+        body_data = user_schema.load(request.json)
         user = User()
-        user.email = body_data.get("email")
-        if body_data.get("password"):
-            user.password = bcrypt.generate_password_hash(
-                body_data.get("password")
-            ).decode("utf-8")
+        user.email = body_data["email"]
+        user.password = bcrypt.generate_password_hash(body_data["password"]).decode("utf-8")
         db.session.add(user)
         db.session.commit()
-        return user_schema.dump(user), 201
+        return user_view_schema.dump(user), 201
     except IntegrityError as err:
         if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
             return {
@@ -73,7 +70,7 @@ def auth_register():
                 "error": f"The '{err.orig.diag.column_name}' field is required, please try again."
             }, 409
         else:
-            return {"error": "Uh oh!."}, 400
+            return {"error": "Uh oh! An unknown error occurred"}, 400
 
 
 # POST method for existing users to login:
