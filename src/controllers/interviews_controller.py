@@ -9,6 +9,7 @@ from models.interviews import (
     interviews_view_schema,
 )
 from controllers.auth_controller import authorise_as_admin, authorise_as_staff
+from controllers.scorecards_controller import scorecards
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -17,6 +18,7 @@ from psycopg2 import errorcodes
 
 
 interviews = Blueprint("interviews", __name__, url_prefix="/interviews")
+interviews.register_blueprint(scorecards, url_prefix="/<int:interview_id>/scorecards")
 
 
 # lists all interviews using a GET request, only admins can perform this action:
@@ -24,8 +26,7 @@ interviews = Blueprint("interviews", __name__, url_prefix="/interviews")
 @jwt_required()
 @authorise_as_admin
 def get_all_interviews():
-    interviews_list = Interview.query.all()
-    # need to update for some kind of sort order?
+    interviews_list = Interview.query.order_by(Interview.interview_datetime).all()
     result = interviews_staff_view_schema.dump(interviews_list)
     return jsonify(result)
 
@@ -35,28 +36,26 @@ def get_all_interviews():
 @jwt_required()
 def get_my_interviews():
     user_id = get_jwt_identity()
-    # checks for a matching interviewer id first via Staff:
     try:
+        # checks for user in Staff:
         query = db.select(Staff).filter_by(user_id=user_id)
         user = db.session.scalar(query)
-        interview_list = Interview.query.filter_by(interviewer_id=user.id)
-        result = interviews_staff_view_schema.dump(interview_list)
-        if len(result) > 0:
-            return jsonify(result)
+        if user:
+            interview_list = Interview.query.order_by(Interview.interview_datetime).filter_by(interviewer_id=user.id)
+            result = interviews_staff_view_schema.dump(interview_list)
+            if len(result) > 0:
+                return jsonify(result)
+            else: pass # if they match a Staff record but have no interviews, using pass to use the one return line as for Candidates
         else:
-            return {"message": "You have no scheduled interviews."}
-    except AttributeError:
-        pass  # this will catch any users who are not in the Staff db and gracefully move them onto the next Try statement
-
-    try:
-        # checks for matching candidate instead:
-        query = db.select(Candidate).filter_by(user_id=user_id)
-        user = db.session.scalar(query)
-        interview_list = Interview.query.filter_by(candidate_id=user.id)
-        result = interviews_view_schema.dump(interview_list)
-        if len(result) > 0:
-            return jsonify(result)
-        else:
+            # now checking Candidates for user:
+            query = db.select(Candidate).filter_by(user_id=user_id)
+            user = db.session.scalar(query)
+            if user:
+                interview_list = Interview.query.order_by(Interview.interview_datetime).filter_by(candidate_id=user.id)
+                result = interviews_view_schema.dump(interview_list)
+                if len(result) > 0:
+                    return jsonify(result)
+                else: pass
             return {"message": "You have no scheduled interviews."}
     except AttributeError:
         # this will catch any registered users who are not yet in either the Staff or Candidate db:
@@ -93,8 +92,8 @@ def create_interview():
             }, 409
 
 
-# allows an admin to update an interview using a PUT request:
-@interviews.route("/<int:id>/", methods=["PUT"])
+# allows an admin to update an interview using a PUT or PATCH request:
+@interviews.route("/<int:id>/", methods=["PUT", "PATCH"])
 @jwt_required()
 @authorise_as_admin
 def update_interview(id):
