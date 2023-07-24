@@ -8,7 +8,7 @@ class Scorecard(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     scorecard_datetime = db.Column(db.DateTime, nullable=False)
-    interview_id = db.Column(db.Integer, db.ForeignKey("interviews.id"), nullable=False)
+    interview_id = db.Column(db.Integer, db.ForeignKey("interviews.id"), unique=True, nullable=False)
     notes = db.Column(db.Text, nullable=False)
     rating = db.Column(db.String, nullable=False)
 
@@ -23,7 +23,6 @@ VALID_STATUSES = ("Strong Yes", "Yes", "No Decision", "No", "Strong No")
 class ScorecardSchema(ma.Schema):
 
     # field validations:
-    interview_id = fields.Integer(required=True)
     scorecard_datetime = fields.DateTime(format="%Y-%m-%d %H:%M%p")
     notes = fields.String(required=True)
     rating = fields.String(required=True, validate=OneOf(VALID_STATUSES))
@@ -38,15 +37,13 @@ class ScorecardSchema(ma.Schema):
 
 
 scorecard_schema = ScorecardSchema()
-scorecards_schema = ScorecardSchema(many=True)
 
 # additional Schema for displaying scorecards to authenticated staff:
 class ScorecardViewSchema(ma.Schema):
     # nested schemas:
-    interview = fields.Nested("InterviewStaffViewSchema")
+    interview = fields.Nested("InterviewScorecardSchema")
     
     # field validations:
-    interview_id = fields.Integer(required=True)
     scorecard_datetime = fields.DateTime(format="%Y-%m-%d %H:%M%p")
     notes = fields.String(required=True)
     rating = fields.String(required=True, validate=OneOf(VALID_STATUSES))
@@ -63,4 +60,3 @@ class ScorecardViewSchema(ma.Schema):
 
 
 scorecard_view_schema = ScorecardViewSchema()
-scorecards_view_schema = ScorecardViewSchema(many=True)

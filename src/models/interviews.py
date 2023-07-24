@@ -125,11 +125,11 @@ interviews_view_schema = InterviewViewSchema(many=True)
 
 class InterviewScorecardSchema(ma.Schema):
     # nested schemas:
-    application = fields.Nested("ApplicationScorecardSchema")
+    candidate = fields.Nested("CandidateSchema", only=["name"])
     interviewer = fields.Nested("StaffSchema", only=["name", "title"])
 
     class Meta:
-        fields = ("application", "interviewer")
+        fields = ("candidate", "interviewer")
 
 
 interview_scorecard_schema = InterviewScorecardSchema()
