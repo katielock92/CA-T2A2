@@ -1,7 +1,7 @@
 from main import db, ma
 
 from marshmallow import fields
-from marshmallow.validate import Length, And, Regexp, OneOf
+from marshmallow.validate import OneOf
 
 class Scorecard(db.Model):
     __tablename__ = "scorecards"
@@ -13,7 +13,7 @@ class Scorecard(db.Model):
     rating = db.Column(db.String, nullable=False)
 
     # add child relationship with Interviews:
-    interviews = db.relationship("Interview", back_populates="scorecards")
+    interview = db.relationship("Interview", back_populates="scorecards")
 
 # field validations for schemas:
 VALID_STATUSES = ("Strong Yes", "Yes", "No Decision", "No", "Strong No")
@@ -35,28 +35,24 @@ class ScorecardSchema(ma.Schema):
             "rating"
         )
 
-
 scorecard_schema = ScorecardSchema()
 
 # additional Schema for displaying scorecards to authenticated staff:
 class ScorecardViewSchema(ma.Schema):
     # nested schemas:
     interview = fields.Nested("InterviewScorecardSchema")
-    
+
     # field validations:
     scorecard_datetime = fields.DateTime(format="%Y-%m-%d %H:%M%p")
     notes = fields.String(required=True)
     rating = fields.String(required=True, validate=OneOf(VALID_STATUSES))
-
     class Meta:
         fields = (
             "id",
-            "scorecard_datetime",
-            "interview_id",
             "interview",
+            "scorecard_datetime",
             "notes",
             "rating"
         )
-
 
 scorecard_view_schema = ScorecardViewSchema()

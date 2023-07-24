@@ -19,7 +19,7 @@ class Interview(db.Model):
 
     # adding parent relationship with Scorecards:
     scorecards = db.relationship(
-        "Scorecard", back_populates="interviews", cascade="all, delete"
+        "Scorecard", back_populates="interview", cascade="all, delete"
     )
 
     # add child relationships with Applications, Candidates and Staff:
@@ -121,8 +121,6 @@ interviews_view_schema = InterviewViewSchema(many=True)
 
 
 # additional Schema for displaying select application and interview information on scorecards:
-
-
 class InterviewScorecardSchema(ma.Schema):
     # nested schemas:
     candidate = fields.Nested("CandidateSchema", only=["name"])
