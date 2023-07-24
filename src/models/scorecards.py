@@ -24,6 +24,7 @@ class ScorecardSchema(ma.Schema):
 
     # field validations:
     interview_id = fields.Integer(required=True)
+    scorecard_datetime = fields.DateTime(format="%Y-%m-%d %H:%M%p")
     notes = fields.String(required=True)
     rating = fields.String(required=True, validate=OneOf(VALID_STATUSES))
     class Meta:
@@ -46,6 +47,7 @@ class ScorecardViewSchema(ma.Schema):
     
     # field validations:
     interview_id = fields.Integer(required=True)
+    scorecard_datetime = fields.DateTime(format="%Y-%m-%d %H:%M%p")
     notes = fields.String(required=True)
     rating = fields.String(required=True, validate=OneOf(VALID_STATUSES))
 

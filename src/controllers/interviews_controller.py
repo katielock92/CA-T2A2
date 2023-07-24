@@ -1,6 +1,7 @@
 from main import db
 from models.staff import Staff
 from models.candidates import Candidate
+from models.applications import Application
 from models.interviews import (
     Interview,
     interview_schema,
@@ -71,9 +72,10 @@ def create_interview():
         interview_fields = interview_schema.load(request.json)
         new_interview = Interview()
         new_interview.application_id = interview_fields["application_id"]
-        new_interview.candidate_id = interview_fields[
-            "candidate_id"
-        ]  # update this later to pull based on application id?
+        # sourcing the candidate id based on the application id supplied:
+        query = db.select(Application).filter_by(id=new_interview.application_id)
+        application = db.session.scalar(query)
+        new_interview.candidate_id = application.candidate_id
         new_interview.interviewer_id = interview_fields["interviewer_id"]
         new_interview.interview_datetime = interview_fields["interview_datetime"]
         new_interview.length_mins = interview_fields["length_mins"]
@@ -88,7 +90,7 @@ def create_interview():
             }, 409
         else:
             return {
-                "error": "Invalid id provided for application, candidate or interviewer, please try again."
+                "error": "Invalid id provided for application or interviewer, please try again."
             }, 409
 
 

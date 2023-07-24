@@ -9,7 +9,7 @@ class Application(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey("jobs.id"), nullable=False)
-    application_date = db.Column(db.String(), nullable=False)
+    application_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(), default="To review", nullable=False)
     candidate_id = db.Column(db.Integer, db.ForeignKey("candidates.id"), nullable=False)
     location = db.Column(db.String(50), nullable=False)
@@ -77,6 +77,7 @@ validate_notice_period = fields.String(
 class ApplicationSchema(ma.Schema):
     # field validations:
     job_id = fields.Integer(required=True)
+    application_date = fields.Date(format="%Y-%m-%d")
     location = validate_location
     working_rights = validate_working_rights
     notice_period = validate_notice_period
@@ -114,6 +115,7 @@ class ApplicationStaffViewSchema(ma.Schema):
 
     # field validations:
     job_id = fields.Integer(required=True)
+    application_date = fields.Date(format="%Y-%m-%d")
     location = validate_location
     working_rights = validate_working_rights
     notice_period = validate_notice_period
@@ -183,6 +185,7 @@ class ApplicationInterviewSchema(ma.Schema):
 
     # field validations:
     job_id = fields.Integer(required=True)
+    application_date = fields.Date(format="%Y-%m-%d")
     location = validate_location
     working_rights = validate_working_rights
     notice_period = validate_notice_period
@@ -214,6 +217,7 @@ class ApplicationScorecardSchema(ma.Schema):
 
     # field validations:
     job_id = fields.Integer(required=True)
+    application_date = fields.Date(format="%Y-%m-%d")
     location = validate_location
     working_rights = validate_working_rights
     notice_period = validate_notice_period

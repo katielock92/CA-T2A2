@@ -36,6 +36,7 @@ validate_format = fields.String(
     validate=OneOf(VALID_FORMATS),
     error="Format must be either 'Phone', 'Video call' or 'In person' - please try again",
 )
+validate_datetime = fields.DateTime(required=True, format="%Y-%m-%d %H:%M%p", error="Please enter date and time in ISO format: YYYY-MM-DD HH:DDAM")
 
 
 # create the primary Interview Schema with Marshmallow, it will provide the serialisation needed for converting the data into JSON
@@ -43,10 +44,9 @@ class InterviewSchema(ma.Schema):
     # field validations:
     format = validate_format
     application_id = fields.Integer(required=True)
-    candidate_id = fields.Integer(required=True)
     interviewer_id = fields.Integer(required=True)
     length_mins = fields.Integer(required=True)
-    interview_datetime = fields.DateTime(required=True)
+    interview_datetime = validate_datetime
 
 
     class Meta:
@@ -74,10 +74,9 @@ class InterviewStaffViewSchema(ma.Schema):
     # field validations:
     format = validate_format
     application_id = fields.Integer(required=True)
-    candidate_id = fields.Integer(required=True)
     interviewer_id = fields.Integer(required=True)
     length_mins = fields.Integer(required=True)
-    interview_datetime = fields.DateTime(required=True)
+    interview_datetime = validate_datetime
 
     class Meta:
         fields = (
@@ -103,10 +102,9 @@ class InterviewViewSchema(ma.Schema):
     # field validations:
     format = validate_format
     application_id = fields.Integer(required=True)
-    candidate_id = fields.Integer(required=True)
     interviewer_id = fields.Integer(required=True)
     length_mins = fields.Integer(required=True)
-    interview_datetime = fields.DateTime(required=True)
+    interview_datetime = validate_datetime
 
     class Meta:
         fields = (
