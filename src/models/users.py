@@ -12,7 +12,7 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(), nullable=False)
 
-    # adding parent relationship with Candidates and Staff:
+    # adding child relationship with Candidates and Staff:
     candidates = db.relationship(
         "Candidate", back_populates="user", cascade="all, delete"
     )

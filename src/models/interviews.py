@@ -17,12 +17,12 @@ class Interview(db.Model):
     length_mins = db.Column(db.Integer, nullable=False)
     format = db.Column(db.String(), nullable=False)
 
-    # adding parent relationship with Scorecards:
+    # adding child relationship with Scorecards:
     scorecards = db.relationship(
         "Scorecard", back_populates="interview", cascade="all, delete"
     )
 
-    # add child relationships with Applications, Candidates and Staff:
+    # add parent relationships with Applications, Candidates and Staff:
     application = db.relationship("Application", back_populates="interviews")
     candidate = db.relationship("Candidate", back_populates="interviews")
     interviewer = db.relationship("Staff", back_populates="interviews")

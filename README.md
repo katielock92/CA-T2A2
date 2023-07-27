@@ -25,11 +25,13 @@ xx
 
 ### **_R1: Identification of the problem you are trying to solve by building this particular app_**
 
-For my API web server application, I am creating a basic Application Tracking System (known as an ATS for short). An ATS "streamlines the hiring process by automating and organising each step along the way, making it easier to connect with qualified candidates more efficiently."^[1]^
+For my API web server application, I am creating a basic Application Tracking System (known as an ATS for short). An ATS *"streamlines the hiring process by automating and organising each step along the way, making it easier to connect with qualified candidates more efficiently."*^[1]^
 
 Companies of varying sizes commonly utilise an ATS in their recruitment and hiring practices to support a standardised workflow for recruitment. This ensures that all applications are kept in a central location and there is consistency in the data collected and stored for roles, candidates and interviews. Using an ATS also saves hours of administration and manual work, such as copying applications from a job board, or individually emailing rejected candidates.
 
 My API web server application would be the foundation for a simple, low-cost ATS that could provide the key tasks to supporting in hiring, and provide a centralised database of hiring data for richer reporting.
+
+*Question sources:* ^[1]^
 
 ---
 
@@ -43,15 +45,38 @@ Having an ATS, even if a simple one, helps to provide consistency and efficiency
 
 ### **_R3: Why have you chosen this database system. What are the drawbacks compared to others?_**
 
-My API application will utilise a PostgreSQL database system.
+My API application will utilise a PostgreSQL database management system (DBMS), which I have chosen for the benefits and versatility that it provides.  PostgreSQL is known for its *"reliability, flexibility and support of open technical standards"*^[3]^, as well as having support for both relational and non-relational databases.  As this project does not currently have any financial backing, being free and open-source is a significant benefit as an early-career developer.  PostgreSQL is not just suitable because of its free cost though - the flexibility of the system provides me with significant freedom as my project may grow and change in the future.
+
+PostgreSQL has deep language support, so while this project is currently only written in Python, it would allow me to operate in other languages in future if they were better suited to the project.  It also allows the use of non-relational databases, if I were to expand the use of databases for other types of data on my project.
+
+In regards to drawbacks, an easy way to demonstrate these is to compare PostgreSQL to MySQL, as this is the other most common DBMS used in market today. PostgreSQL is more technical when compared to MySQL, and therefore has a stepper learning curve for non-technical or new users.  This could be an issue if my project were to involve more users in future who are non-technical or not experienced with PostgreSQL.
+
+Another key difference between PostgreSQL and MySQL is the performance of read and write operations. MySQL is far more efficient with read operations, whilst PostgreSQL is more efficient with write operations.  Whether this is a drawback for PostgreSQL is situational depending on use case and the frequency of each of these operations.  For my API, there is a similar number of read and write operations, and therefore the other benefits of PostgreSQL outweigh any performance delays with read operations.  However if you had an application that primarily performed read operations, this would be a significant drawback of using PostgreSQL.
+
+*Question sources:* ^[2]^, ^[3]^
 
 ---
 
 ### **_R4: Identify and discuss the key functionalities and benefits of an ORM_**
 
-x
+Object-Relational-Mapping (ORM) is *"a technique used in creating a "bridge" between object-oriented programs and ...databases."*^[5]^ This allows a programmer to interact with a (usually relational) database by writing queries in the object-oriented programming language of choice, rather than in SQL.
 
-^[3]^
+ORM is designed to simplify the process of interacting with databases in an application by utilising a consistent language throughout the application code. ORM tools are how programmers apply ORM in an application, with their ORM tool of choice being imported as a library.  There are a wide variety of ORM tools available for different popular languages, and they tend to have slightly different syntax to create the same result when translated into SQL.
+
+Some of the key functionalities of ORMs are:
+- **Abstraction** - ORMs allow the developer to access and manipulate objects in a database without having to know or consider all of the relations in the database. Naturally it does help if the developer also knows the database relations and structure, but it is not a requirement when writing queries, in contrast to raw SQL.
+- **No SQL required** - ORMs allow you to perform CRUD (create, read, update, delete) operations in a relational database without needing to know SQL, or the need to write SQL queries.
+- **Translation** - ORMs work by translating the code written in the object-oriented language into a SQL query so that the database can understand and perform the query.
+
+Using an ORM when writing an application that interacts with databases can have many benefits. As a programmer, you are likely more component and familiar with a programming language such as JavaScript, Python or Java, rather than SQL. By being able to write your database queries in your primary programming language, you are more efficient and can likely write more complex queries than if you were needing to write these in SQL.
+
+Not only do you save time by writing in your primary language, but using an ORM results in shorter, cleaner code.  ORM queries are typically much shorter to achieve the same result than the equivalent SQL query.
+
+ORMs are abstract in how they translate to SQL, and therefore you can easily switch between using different database systems whilst still having similar query syntax.  This makes it easier for a developer to switch between projects or companies who use different database systems without needing to learn a completely new skillset for database queries.
+
+Another major benefit of using ORMs for businesses is that they provide security benefits, due to the tools preventing malicious attacks via direct SQL.
+
+*Question sources:* ^[4]^, ^[5]^, ^[6]^
 
 ---
 
@@ -602,19 +627,153 @@ x
 
 ### **_R7: Detail any third party services that your app will use_**
 
-x
+My application is written in Python, which allows you to implement many third party services through the use of libraries. These imported libraries provide significant functionality to my Python application, from defining the framework to allowing database interaction and authentication.
+
+The primary third party Python libraries used in my application, and their functionality, are as follows:
+- **Flask** - Flask is the Python framework that is implemented in this application, and is used for building web applications. Flask manages the low-level details of an application for the user to make it simple to start building a web application - which is perfect for a new developer such as myself.
+- **SQLAlchemy** - SQLAlchemy is the ORM tool used to translate the Python Flask queries in my application into SQL for interacting with the PostgreSQL database, and performing CRUD operations.
+- **Marshmallow** - Marshmallow is a tool that converts complex data types from an ORM into a format that be rendered in Python. In my application, it is used to create a schema for each model, so that queries can be serialised and returned to the user in a JSON format.
+- **JWT Extended** - This allows users to be authenticated through the use of a Javascript Web Token (JWT). In my application this is used in conjunction with the Users table in the database and a set of register/login features, so that a token is returned when a user logs in and this token is associated with that particular user's session.
+- **Bcrypt** - Bcrypt is an encryption tool that uses a hashing algorithm when storing sensitive fields in the database. In my application this is used to encrypt user passwords, so that these are stored in a hashed format, and can not be accessed at ease.
+- **pythondotenv** - This library allows us to set the environment variables within system files called *.env* and *.flaskenv* so that these do not need to be entered into the terminal query every time we are running our Flask application. There are key-value pairs for specific variables, such as the port, application name, database URI and secret key.
+- **Psycopg** - This is a PostgreSQL database adaptor for Python, which enables us to access our PostgreSQL database from our Python application. The difference between this and an ORM such as SQLAlchemy is that Psycopg is used to *connect* to the database, whilst an ORM is used to perform operations within the database once we are connected.
 
 ---
 
 ### **_R8: Describe your project's models in terms of the relationships they have with each other_**
 
-x
+All of the models in my project's database have at least one relationship with another model, some even having multiple relationships. The next section discusses these database relations from an ERD perspective, however when implementing these relations in Flask code, we need to do this within models.
+
+The models within my application have the following relationships with each other:
+
+**Users model:**
+- The Users model has no parent relations, and is the first model a user should interact with unless using existing database records.
+- There is a *child* relationship with the Staff model with the following parameters:
+    - *user_id* is a foreign key in the Staff model, linked with the *id* field in the Users model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is a "cascade delete" condition on the Users side of the relationship, which means that if a user record is deleted, any related entries in the Staff table are also deleted.
+- There is a *child* relationship with the Candidates model with the following parameters:
+    - *user_id* is a foreign key in the Candidates model, linked with the *id* field in the Users model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is a "cascade delete" condition on the Users side of the relationship, which means that if a user record is deleted, any related entries in the Candidates table are also deleted.
+
+**Staff model:**
+- There is a *parent* relationship with the Users model with the following parameters:
+    - *user_id* is a foreign key in the Staff model, linked with the *id* field in the Users model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *user_id* field is set as "nullable=False" in the Staff model, which means that a staff record must contain a user_id.
+    - The *user_id* field is set as "unique=True" in the Staff model, which means that this field must contain a unique entry for each record in the Staff table.
+- There is a *child* relationship with the Job model with the following parameters:
+    - *hiring_manager_id* is a foreign key in the Jobs model, linked with the *id* field in the Staff model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is no "cascade delete" condition on this relationship, meaning that either side can be deleted without the other. This is because a job does not cease to exist if a hiring manager leaves, you would update it prior to deleting the Staff record.
+- There is a *child* relationship with the Interview model with the following parameters:
+    - *interviewer_id* is a foreign key in the Interviews model, linked with the *id* field in the Staff model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is no "cascade delete" condition on this relationship, meaning that either side can be deleted without the other. This is because an interview does not cease to exist if an interviewer leaves, you would update it prior to deleting the Staff record.
+
+**Candidates model:**
+- There is a *parent* relationship with the Users model with the following parameters:
+    - *user_id* is a foreign key in the Candidates model, linked with the *id* field in the Users model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *user_id* field is set as "nullable=False" in the Candidates model, which means that a staff record must contain a user_id.
+    - The *user_id* field is set as "unique=True" in the Candidates model, which means that this field must contain a unique entry for each record in the Candidates table.
+- There is a *child* relationship with the Applications model with the following parameters:
+    - *candidate_id* is a foreign key in the Applications model, linked with the *id* field in the Candidates model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is a "cascade delete" condition on the Candidates side of the relationship, which means that if a candidate record is deleted, any related entries in the Applications table are also deleted.
+- There is a *child* relationship with the Interviews model with the following parameters:
+    - *candidate_id* is a foreign key in the Interviews model, linked with the *id* field in the Candidates model, and sourced via the application_id foreign key field to prevent invalid entries.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is a "cascade delete" condition on the Candidates side of the relationship, which means that if a candidate record is deleted, any related entries in the Interviews table are also deleted.
+
+**Jobs model:**
+- There is a *parent* relationship with the Staff model with the following parameters:
+    - *hiring_manager_id* is a foreign key in the Jobs model, linked with the *id* field in the Staff model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *user_id* field is set as "nullable=False" in the Jobs model, which means that a job record must contain a hiring_manager_id.
+- There is a *child* relationship with the Applications model with the following parameters:
+    - *job_id* is a foreign key in the Applications model, linked with the *id* field in the Jobs model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is a "cascade delete" condition on the Jobs side of the relationship, which means that if a job record is deleted, any related entries in the Applications table are also deleted.
+
+**Applications model:**
+- There is a *parent* relationship with the Jobs model with the following parameters:
+    - *job_id* is a foreign key in the Applications model, linked with the *id* field in the Job model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *job_id* field is set as "nullable=False" in the Applications model, which means that an application record must contain a job_id.
+- There is a *parent* relationship with the Candidates model with the following parameters:
+    - *candidate_id* is a foreign key in the Applications model, linked with the *id* field in the Candidates model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *candidate_id* field is set as "nullable=False" in the Applications model, which means that an application record must contain a candidate_id.
+- There is a *child* relationship with the Interview model with the following parameters:
+    - *application_id* is a foreign key in the Interviews model, linked with the *id* field in the Applications model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is a "cascade delete" condition on the Applications side of the relationship, which means that if an application record is deleted, any related entries in the Interviews table are also deleted.
+
+**Interviews model:**
+- There is a *parent* relationship with the Staff model with the following parameters:
+    - *interviewer_id* is a foreign key in the Interviews model, linked with the *id* field in the Staff model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *interviewer_id* field is set as "nullable=False" in the Interviews model, which means that an interview record must contain an interviewer_id.
+- There is a *parent* relationship with the Applications model with the following parameters:
+    - *application_id* is a foreign key in the Interviews model, linked with the *id* field in the Applications model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *application_id* field is set as "nullable=False" in the Interviews model, which means that an interview record must contain an application_id.
+- There is a *parent* relationship with the Candidates model with the following parameters:
+    - *candidate_id* is a foreign key in the Interviews model, linked with the *id* field in the Candidates model, and sourced through the application_id.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *candidate_id* field is set as "nullable=False" in the Interviews model, which means that an application record must contain a candidate_id.
+- There is a *child* relationship with the Scorecards model with the following parameters:
+    - *interview_id* is a foreign key in the Scorecards model, linked with the *id* field in the Interviews model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - There is a "cascade delete" condition on the Interviews side of the relationship, which means that if an interview record is deleted, any related entries in the Scorecards table are also deleted.
+
+**Scorecards model:**
+- There is a *parent* relationship with the Interviews model with the following parameters:
+    - *interview_id* is a foreign key in the Scorecards model, linked with the *id* field in the Interviews model.
+    - This relationship uses the "back_populates" condition, which means that a change in data one side of the relationship will updated the other.
+    - The *interview_id* field is set as "nullable=False" in the Scorecards model, which means that a scorecard record must contain an interview_id.
+- The Scorecards model has no child relationships.
 
 ---
 
 ### **_R9: Discuss the database relations to be implemented in your application_**
 
-x
+From our ERD, you can see there are planned relations between each of the entities within our database that will need to be implemented when developing the application.  These relations are documented through the arrows connecting the row from one table to another, with the symbols on each arrow indicating the nature of the relationship.  FK is used to indicate when a field in a table is a foreign key from another database table, sourced through the relation.
+
+The **Users** table has 2 relations:
+- **Staff:** One-to-one relationship between the *id* field in the Users table and *user_id* field in the Staff table. One user can only be referenced once in the Staff table and a staff member must be a user, but a user doesn't need to be a staff member.
+- **Candidates:** One-to-one relationship between the *id* field in the Users table and *user_id* field in the Candidates table. One user can only be referenced once in the Candidates table and a candidate must be a user, but a user doesn't need to be a candidate.
+
+The **Staff** table has 3 relations:
+- **Users:** One-to-one relationship between the *id* field in the Users table and *user_id* field in the Staff table. user_id is a foreign key. One user can only be referenced once in the Staff table and a staff member must be a user, but a user doesn't need to be a staff member.
+- **Jobs:** One-to-many relationship between the *id* field in the Staff table and *hiring_manager_id* field in the Jobs table. A job requires a staff member as the hiring manager, but a staff member can be the hiring manager on zero, one or multiple jobs.
+- **Interviews:** One-to-many relationship between the *id* field in the Staff table and *interviewer_id* field in the Interviews table. An interview requires a staff member as an interviewer, but a staff member can be the interviewer on zero, one or multiple jobs.
+
+The **Candidates** table has 3 relations:
+- **Users:** One-to-one relationship between the *id* field in the Users table and *user_id* field in the Candidates table. user_id is a foreign key. One user can only be referenced once in the Candidates table and a candidate must be a user, but a user doesn't need to be a candidate.
+- **Applications:** One-to-many relationship between the *id* field in the Candidates table and *candidate_id* field in the Applications table. A candidate can apply for zero, one or multiple jobs, but all applications require a candidate.
+- **Interviews:** One-to-many relationship between the *id* field in the Candidates table and *candidate_id* field in the Interviews table, which is sourced via the *application_id*. A candidate can have zero, one or multiple interviews, but all interviews require a candidate.
+
+The **Jobs** table has 2 relations:
+- **Staff**: One-to-many relationship between the *id* field in the Staff table and *hiring_manager_id* field in the Jobs table. hiring_manager_id is a foreign key. A job requires a staff member as the hiring manager, but a staff member can be the hiring manager on zero, one or multiple jobs.
+- **Applications:** One-to-many relationship with the *id* field in the Jobs table and *job_id* in the Applications table. A job can have zero, one or multiple applications, but all applications require a job.
+
+The **Applications** table has 3 relations:
+- **Candidates:** One-to-many relationship between the *id* field in the Candidates table and *candidate_id* field in the Applications table. candidate_id is a foreign key. A candidate can apply for zero, one or multiple jobs, but all applications require a candidate.
+- **Job:** One-to-many relationship with the *id* field in the Jobs table and *job_id* in the Applications table. job_id is a foreign key. A job can have zero, one or multiple applications, but all applications require a job.
+- **Interviews:** One-to-many relationships between the *id* field in the Applications table and the *application_id* field in the Interviews table. An application can have zero, one or multiple interviews, but all interviews require an application.
+
+The **Interviews** table has 4 relations:
+- **Staff:** One-to-many relationship between the *id* field in the Staff table and *interviewer_id* field in the Interviews table. interviewer_id is a foreign key. An interview requires a staff member as an interviewer, but a staff member can be the interviewer on zero, one or multiple jobs.
+- **Candidates:** One-to-many relationship between the *id* field in the Candidates table and *candidate_id* field in the Interviews table, which is sourced via the *application_id*. candidate_id is a foreign key. A candidate can have zero, one or multiple interviews, but all interviews require a candidate.
+- **Applications:** One-to-many relationships between the *id* field in the Applications table and the *application_id* field in the Interviews table. application_id is a foreign key. An application can have zero, one or multiple interviews, but all interviews require an application.
+- **Scorecards:** One-to-one relationships between the *id* field in the Interviews table and the *interview_id* field in the Scorecards table. One interview can only be referenced once in the Scorecards table and a scorecard must be linked to an interview, but an interview isn't require to have a scorecard.
+
+The **Scorecards** table has 1 relation:
+- **Interviews:** One-to-one relationships between the *id* field in the Interviews table and the *interview_id* field in the Scorecards table. interview_id is a foreign key. One interview can only be referenced once in the Scorecards table and a scorecard must be linked to an interview, but an interview isn't require to have a scorecard.
+
 
 ---
 
@@ -630,6 +789,13 @@ The Trello board can be viewed here: [T2A2 - API Webserver](https://trello.com/b
 
 ^[1]^ McCann, A., 13 ATS benefits and what they mean for your business, viewed 11/07/2023, https://resources.workable.com/tutorial/ats-benefits
 
-^[2]^ x
+^[2]^ Amazon Web Services, What's The Difference Between MySQL And PostgreSQL?
+, viewed 26/07/2023, https://aws.amazon.com/compare/the-difference-between-mysql-vs-postgresql/
 
-^[3]^ Hoyos, M., What is an ORM and Why You Should Use It, viewed 11/07/2023, https://blog.bitsrc.io/what-is-an-orm-and-why-you-should-use-it-b2b6f75f5e2a
+^[3]^ IBM, PostgreSQL vs. MySQL: What’s the Difference?, viewed 26/07/2023, https://www.ibm.com/cloud/blog/postgresql-vs-mysql-whats-the-difference
+
+^[4]^ Hoyos, M., What is an ORM and Why You Should Use It, viewed 11/07/2023 and 26/07/2023, https://blog.bitsrc.io/what-is-an-orm-and-why-you-should-use-it-b2b6f75f5e2a
+
+^[5]^ Ihechikara, V.A., What is an ORM – The Meaning of Object Relational Mapping Database Tools, viewed 26/07/2023, https://www.freecodecamp.org/news/what-is-an-orm-the-meaning-of-object-relational-mapping-database-tools/
+
+^[6]^ Awati, R., object-relational mapping (ORM), viewed 26/07/2023, https://www.theserverside.com/definition/object-relational-mapping-ORM

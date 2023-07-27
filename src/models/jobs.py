@@ -16,10 +16,10 @@ class Job(db.Model):
     salary_budget = db.Column(db.Integer(), nullable=False)
     hiring_manager_id = db.Column(db.Integer, db.ForeignKey("staff.id"), nullable=False)
 
-    # adding child relationship with Staff:
+    # adding parent relationship with Staff:
     hiring_manager = db.relationship("Staff", back_populates="jobs")
 
-    # adding parent relationship with Applications:
+    # adding child relationship with Applications:
     applications = db.relationship(
         "Application", back_populates="job", cascade="all, delete"
     )

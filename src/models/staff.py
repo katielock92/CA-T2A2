@@ -14,11 +14,11 @@ class Staff(db.Model):
     title = db.Column(db.String(50), nullable=False)
     admin = db.Column(db.Boolean, default=False)
 
-    # adding parent relationship with Jobs and Interviews, does not cascade delete:
+    # adding child relationship with Jobs and Interviews, does not cascade delete:
     jobs = db.relationship("Job", back_populates="hiring_manager")
     interviews = db.relationship("Interview", back_populates="interviewer")
 
-    # adding child relationship with Users:
+    # adding parent relationship with Users:
     user = db.relationship("User", back_populates="staff")
 
 

@@ -12,7 +12,7 @@ class Scorecard(db.Model):
     notes = db.Column(db.Text, nullable=False)
     rating = db.Column(db.String, nullable=False)
 
-    # add child relationship with Interviews:
+    # add parents relationship with Interviews:
     interview = db.relationship("Interview", back_populates="scorecards")
 
 # field validations for schemas:

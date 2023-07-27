@@ -16,7 +16,7 @@ class Candidate(db.Model):
     # string used for phone number so that leading zeroes aren't dropped and certain special characters are allowed:
     phone_number = db.Column(db.String(20), nullable=False)
 
-    # adding parent relationship with Applications and Interviews:
+    # adding child relationship with Applications and Interviews:
     applications = db.relationship(
         "Application", back_populates="candidate", cascade="all, delete"
     )
@@ -24,7 +24,7 @@ class Candidate(db.Model):
         "Interview", back_populates="candidate", cascade="all, delete"
     )
 
-    # adding child relationship with Users:
+    # adding parent relationship with Users:
     user = db.relationship("User", back_populates="candidates")
 
 

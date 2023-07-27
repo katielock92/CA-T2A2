@@ -19,11 +19,11 @@ class Application(db.Model):
     # using a string rather than a binary datatype for resume for simplicity in this API so that a URL can be used instead:
     resume = db.Column(db.String(), nullable=False)
 
-    # adding parent relationship with Interviews:
+    # adding child relationship with Interviews:
     interviews = db.relationship(
         "Interview", back_populates="application", cascade="all, delete")
 
-    # adding child relationship with Candidates and Jobs:
+    # adding parent relationship with Candidates and Jobs:
     candidate = db.relationship("Candidate", back_populates="applications")
     job = db.relationship("Job", back_populates="applications")
 
