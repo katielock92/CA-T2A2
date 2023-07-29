@@ -5,6 +5,23 @@ from marshmallow.validate import Length, And, Regexp, OneOf
 
 
 class Job(db.Model):
+
+    """Creates the Job model in our database.
+
+    Database columns:
+        id: A required integer that is automatically serialised, a unique identifier for each job.
+        title: A required string, the title of the job being advertised.
+        description: A required text field, a description of the job responsibilities and requirements.
+        location: A required string, the location of where this job is based.
+        status: A required string, specifies if the job listing is currently open or has been closed.
+        salary_budget: A required integer, the budget for the role's salary.
+        hiring_manager_id: A required integer, a foreign key that links to the Staff table for the hiring manager.
+
+    Database relationships:
+        applications: A child of Jobs, the job.id is a foreign key in the Applications table.
+        staff: A parent of Jobs, the staff.id is a foreign key in the Jobs table.
+    """
+
     __tablename__ = "jobs"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -16,16 +33,18 @@ class Job(db.Model):
     salary_budget = db.Column(db.Integer(), nullable=False)
     hiring_manager_id = db.Column(db.Integer, db.ForeignKey("staff.id"), nullable=False)
 
-    # adding parent relationship with Staff:
     hiring_manager = db.relationship("Staff", back_populates="jobs")
-
-    # adding child relationship with Applications:
     applications = db.relationship(
         "Application", back_populates="job", cascade="all, delete"
     )
 
 
-# field validations for schemas:
+"""Field validations for the schemas.
+
+Defined as variables outside of an individual schema as they are reused across multiple schemas.
+
+"""
+
 VALID_STATUSES = ("Open", "Closed")
 
 validate_title = fields.String(
@@ -64,9 +83,30 @@ validate_location = fields.String(
 )
 
 
-# creating a primary Schema with Marshmallow to allow us to serialise Jobs into JSON:
 class JobSchema(ma.Schema):
-    # field validations:
+
+    """The primary Schema for the Jobs model.
+
+    Allows us to serialise into JSON using Marshmallow.
+    This version of the schema is used to load and update values in the Jobs table, but is not returned to users.
+
+    Field validations:
+        title: A regular expression is used so that only letters, numbers, spaces and certain special characters can be used. The field length has a min of 4 and max of 100 characters.
+        department: A regular expression is used so that only letters, numbers, spaces and certain special characters can be used. The field length has a min of 2 and max of 50 characters.
+        location: A regular expression is used so that only letters, numbers, spaces and certain special characters can be used. The field length has a min of 2 and max of 50 characters.
+        description: A required field, text format.
+        salary_budget: A required field, integer format.
+        hiring_manager_id: A required field, integer format.
+        status: Only accepts input that matches a specified list of values.
+
+    Class meta: Includes all fields from the model.
+
+    Schema variables:
+        job_schema: When a single Job record is accessed.
+        jobs_schema: When multiple Job records are accessed.
+
+    """
+
     title = validate_title
     department = validate_department
     location = validate_location
@@ -93,12 +133,28 @@ job_schema = JobSchema()
 jobs_schema = JobSchema(many=True)
 
 
-# additional Schema for displaying jobs to authorised staff who can see budget:
 class JobAdminSchema(ma.Schema):
-    # nested schemas:
+
+    """Additional Schema for the Jobs model for Admin users.
+
+    Allows us to serialise into JSON using Marshmallow.
+    This version of the schema is used when returning data from the Jobs model to authenticated Admin users.
+
+    Nested schemas:
+        hiring_manager is a nested schema from the StaffSchema, which displays the name and title fields of the Staff record linked via the hiring_manager_id foreign key field.
+
+    Field validations: Same as Job_Schema.
+
+    Class meta: Includes all fields from the model except hiring_manager_id, as a nested schema is used instead.
+
+    Schema variables:
+        job_admin_schema: When a single Job record is accessed.
+        jobs_admin_schema: When multiple Job records are accessed.
+
+    """
+
     hiring_manager = fields.Nested("StaffSchema", only=["name", "title"])
 
-    # field validations:
     title = validate_title
     department = validate_department
     location = validate_location
@@ -125,12 +181,29 @@ job_admin_schema = JobAdminSchema()
 jobs_admin_schema = JobAdminSchema(many=True)
 
 
-# additional Schema for displaying jobs to authorised staff who can't see budget:
 class JobStaffSchema(ma.Schema):
-    # nested schemas:
+
+    """Additional Schema for the Jobs model for non-Admin Staff users.
+
+    Allows us to serialise into JSON using Marshmallow.
+    This version of the schema is used when returning data from the Jobs model to authenticated Staff users who do not have Admin access.
+
+    Nested schemas: hiring_manager is a nested schema from the StaffSchema, which displays the name and title fields of the Staff record linked via the hiring_manager_id foreign key field.
+
+    Field validations: Same as Job_Schema.
+
+    Class meta: Includes all fields from the model except:
+    - hiring_manager_id, as a nested schema is used instead
+    - salary_budget
+
+    Schema variables:
+        job_staff_schema: When a single Job record is accessed.
+        jobs_staff_schema: When multiple Job records are accessed.
+
+    """
+
     hiring_manager = fields.Nested("StaffSchema", only=["name", "title"])
 
-    # field validations:
     title = validate_title
     department = validate_department
     location = validate_location
@@ -155,9 +228,25 @@ job_staff_schema = JobStaffSchema()
 jobs_staff_schema = JobStaffSchema(many=True)
 
 
-# additional Schema for displaying jobs to non-authenticated users:
 class JobViewSchema(ma.Schema):
-    # field validations:
+
+    """Additional Schema for the Jobs model for non-Staff users.
+
+    Allows us to serialise into JSON using Marshmallow.
+    This version of the schema is used when returning data from the Jobs model to users with no JWT or without Staff access.
+
+    Field validations: Same as Job_Schema.
+
+    Class meta: Includes all fields from the model except:
+    - hiring_manager_id
+    - salary_budget
+
+    Schema variables:
+        job_view_schema: When a single Job record is accessed.
+        jobs_view_schema: When multiple Job records are accessed.
+
+    """
+
     title = validate_title
     department = validate_department
     location = validate_location
