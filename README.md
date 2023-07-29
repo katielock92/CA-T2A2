@@ -5,19 +5,25 @@
 ---
 
 ## **Project Summary and Table of Contents**
-xx
-### Contents
+For this project, we were given the following introduction/brief:
+> *Web servers can come in many shapes and contain different levels of complexity. At their core, they always involve server concepts such as routing, and handling the communication of data between users and a data storage medium. To solidify your knowledge of core web server concepts and show your ability to work with web servers at a fundamental level, you should be able to write code to create a functioning web API server.*
 
-1. [Identification of problem](#r1-identification-of-the-problem-you-are-trying-to-solve-by-building-this-particular-app)
-2. [Why this problem needs solving](#r2-why-is-it-a-problem-that-needs-solving)
-3. [Choice of database system](#r3-why-have-you-chosen-this-database-system-what-are-the-drawbacks-compared-to-others)
-4. [Key functionalities and benefits of an ORM](#r4-identify-and-discuss-the-key-functionalities-and-benefits-of-an-orm)
-5. [Endpoint Documentation](#r5-document-all-endpoints-for-your-api)
-6. [Entity Relational Diagram (ERD)](#r6-an-erd-for-your-app)
-7. [Third party services](#r7-detail-any-third-party-services-that-your-app-will-use)
-8. [Models and relations](#r8-describe-your-projects-models-in-terms-of-the-relationships-they-have-with-each-other)
-9. [Database relations](#r9-discuss-the-database-relations-to-be-implemented-in-your-application)
-10. [Project management](#r10-describe-the-way-tasks-are-allocated-and-tracked-in-your-project)
+This required selecting an idea for a web application that utilises relational databases, so that we could create the backend of the application and API routes using Python and Flask.
+### README Contents
+- [Planning and Documentation Requirements:](#planning-and-documentation-requirements)
+    1. [Identification of problem](#r1-identification-of-the-problem-you-are-trying-to-solve-by-building-this-particular-app)
+    2. [Why this problem needs solving](#r2-why-is-it-a-problem-that-needs-solving)
+    3. [Choice of database system](#r3-why-have-you-chosen-this-database-system-what-are-the-drawbacks-compared-to-others)
+    4. [Key functionalities and benefits of an ORM](#r4-identify-and-discuss-the-key-functionalities-and-benefits-of-an-orm)
+    5. [Endpoint Documentation](#r5-document-all-endpoints-for-your-api)
+    6. [Entity Relational Diagram (ERD)](#r6-an-erd-for-your-app)
+    7. [Third party services](#r7-detail-any-third-party-services-that-your-app-will-use)
+    8. [Models and relations](#r8-describe-your-projects-models-in-terms-of-the-relationships-they-have-with-each-other)
+    9. [Database relations](#r9-discuss-the-database-relations-to-be-implemented-in-your-application)
+    10. [Project management](#r10-describe-the-way-tasks-are-allocated-and-tracked-in-your-project)
+- [Appendix](#appendix)
+    - [How to Operate](#how-to-operate)
+    - [Sources](#sources)
 
 ---
 
@@ -459,7 +465,7 @@ There are 2 primary types of authentication (beyond simply requiring a JWT) that
 - **Authentication methods:**
   - authorise_as_admin
 
-**_Endpoint #x26 - Delete Application:_**
+**_Endpoint #26 - Delete Application:_**
 
 - **Route:** _/applications/<application_id>_
 - **Purpose:** Allows an admin to delete an application record from the Applications table
@@ -621,7 +627,20 @@ There are 2 primary types of authentication (beyond simply requiring a JWT) that
 
 ### **_R6: An ERD for your app_**
 
-x
+My draft ERD, which was used to get my application idea approved, was as follows:
+![A draft version of the ERD for this application](./docs/Draft%20ERD.png)
+
+When planning the routes and considering the architecture of the application, I ran into one key issue - I couldn't reference the *id* field in the Users table twice within a different table. This meant that a job couldn't reference both the recruiter and hiring manager, and an interview couldn't reference both the candidate and interviewer.
+
+Ultimately I decided to then split the Users entity into three separate entities:
+- Users (simply contains a user_id, email and password, for authenticating a user)
+- Staff (for internal users who have higher permission levels)
+- Candidates (for external users who are applying for jobs and interviewing with the company)
+
+I also tidied up the ERD to remove some of the Flask-specific conditions from this diagram, solely focusing on keeping it based around the entities, their relations and the basic data type.
+
+The final ERD for my application, and what this documentation is based on, is as follows:
+![Final ERD for ATS application](./docs/API%20Project%20ERD.png)
 
 ---
 
@@ -783,9 +802,61 @@ For this project, I am utilising a Trello board for the project management and t
 
 The Trello board can be viewed here: [T2A2 - API Webserver](https://trello.com/b/EcnQEn4x/t2a2-api-webserver)
 
----
+I created 5 Lists within this board, for different statuses:
+- To-Do: Planning
+- To-Do: Development
+- In Progress
+- Blocked
+- Done
 
-## **Sources**
+I then created a card for a high-level task, and a checklist within to go into more detail. Examples of the cards are:
+- A card for each stage in the project conception, approval and setup
+- A card for each question in the Documentation requirements
+- A card for creating each key configuration/setup files for the Flask application
+- A card for each of:
+    - Models
+    - Schemas
+    - Controllers
+    - CLI commands
+
+Once the task described in the card was commenced, it was moved from the To-Do list to the In Progress list. The coding features of the application had far more activity, which included regularly adding items to the checklist, ticking and unticking these as I created functions or refactors were required, and using the Comments section to summarise my progress.
+
+As I am the only person working on this application, I did not assign any of the cards or checklist items to myself. In addition I did not set due dates on tasks, as I knew the process would be quite fluid and often resulted in working on multiple different cards at once.
+
+In a real world scenario, this would look different due to having multiple people working on a project, and projects being broken into tickets within a sprint. Even if due dates or user assignments were not utilised on my Trello board, it was still beneficial to track and document my progress on my application - particularly if I was coming back to code on a new day and needed to refresh my mind on my progress.
+
+---
+## Appendix
+
+### **How to Operate**
+In order to operate this webserver application, you will require the following:
+- A modern computer (no specific OS requirements) with an internet connection
+- An API Platform tool (such as Postman or Insomnia)
+- A IDE software of your choice (such as VSCode)
+
+The steps to operate are as follows:
+1. All files in the *.src* folder should be downloaded to your local machine.
+2. If you have downloaded this application from GitHub:
+    - Open the Terminal application on your local machine.
+    - Install PostgreSQL, if this is not already installed.
+    - Run PostgreSQL, and create a new database user (name and password of your choice), along with a new database called *ats_db*.
+    - Copy the *.envsample* file to a new file named *.env*.
+    - In this new file, set your own secret key, and set the database URL using the psycopg2 format, with the ats_db database and the new database username and password on your machine's psql.
+3. Check that the ports specified in .env and .flaskenv are available on your local machine, and change if required.
+4. Open the .src folder in the Terminal (either on your IDE or the Terminal application).
+5. Enter the following commands into your terminal:
+    - To launch the virtual environment for the application: ``python3 -m venv .venv && source .venv/bin/activate``
+    - To install all required libraries into this virtual environment: ``pip3 install -r requirements.txt``
+    - To create the database tables on your machine: ``flask db create``
+    - To seed the CLI commands into your local psql: ``flask db seed``
+    - To run the application: ``flask run``
+6. If the above steps are successful, the Flask application will now be running on the port specified in the *.flaskenv* file.
+7. Open your API Platform and create a GET request for the following route: *http://127.0.0.1:8080/jobs* (modify if the port changed, or if your local machine uses localhost instead of an IP address)
+8. If this route successfully returns the list of jobs for non-Staff users, the app is working for you! You can now begin navigating through the remaining routes once you register as a user, or if you use one of the existing logins in the CLI commands.
+
+If any help is required when operating the application, please contact the application author for further assistance.
+___
+### **Sources**
 
 ^[1]^ McCann, A., 13 ATS benefits and what they mean for your business, viewed 11/07/2023, https://resources.workable.com/tutorial/ats-benefits
 
