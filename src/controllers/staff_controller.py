@@ -41,6 +41,27 @@ def get_staff():
 @jwt_required()
 @authorise_as_admin
 def create_staff():
+    """Creates a new record in the Staff table, only for admin users.
+
+    A POST request is used to create a new record in the Staff table, linked to the user.id provided. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        None required.
+
+    Input:
+        user.id, name, title and admin fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the new record in the Staff table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        409: Displayed if a required field is not provided.
+        409: Displayed if a Staff record already exists with the user.id provided.
+        404: Displayed if the user.id provided doesn't match a record in the Users table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     try:
         staff_fields = staff_schema.load(request.json)
         new_staff = Staff()
@@ -62,10 +83,27 @@ def create_staff():
             return {"error": "Invalid user id provided, please try again."}, 404
 
 
-# allows a Staff user to update their own profile using a PUT or PATCH request:
 @staff.route("/", methods=["PUT", "PATCH"])
 @jwt_required()
 def update_staff():
+    """Updates record in Staff table for linked user's own record.
+
+    A PUT or PATCH request is used to update the name or title fields for an authenticated user's record in the Staff table. Requires a JWT.
+
+    Args:
+        None required.
+
+    Input:
+        At least one of "name" or "title", in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the updated record in the Staff table, in JSON format.
+
+    Errors:
+        400: Displayed if name or title don't meet validation conditions.
+        401: Displayed if no JWT is provided.
+        404: Displayed if a JWT is provided, but the user's id does not match a record in the Staff table.
+    """
     user_id = get_jwt_identity()
     body_data = staff_schema.load(request.get_json(), partial=True)
     query = db.select(Staff).filter_by(user_id=user_id)
@@ -79,11 +117,29 @@ def update_staff():
         return {"error": "You do not have a Staff record to update"}, 404
 
 
-# allows an admin to update certain fields on a staff member using a PUT request:
 @staff.route("/<int:id>/", methods=["PUT"])
 @jwt_required()
 @authorise_as_admin
 def update_staff_admin(id):
+    """Updates a specified record in Staff table, only for admin users.
+
+    A PUT or PATCH request is used to update the admin field for a specified record in the Staff table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        staff.id
+
+    Input:
+        Boolean value for "admin".
+
+    Returns:
+        Key value pairs for all fields for the updated record in the Staff table, in JSON format.
+
+    Errors:
+        400: Displayed if an invalid boolean value is provided.
+        404: Displayed if the id provided as an arg doesn't match a record in the Staff table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     body_data = staff_schema.load(request.get_json(), partial=True)
     query = db.select(Staff).filter_by(id=id)
     staff = db.session.scalar(query)

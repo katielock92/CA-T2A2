@@ -10,10 +10,16 @@ from datetime import timedelta
 import functools
 
 
-# adding wrapper functions for authorised actions:
 def authorise_as_admin(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
+        """Wrapper function for authorising an admin.
+
+        Used in other controller functions to easily authorise a user as an admin.
+
+        Errors:
+            403: Displays error if user does not have admin permission in Staff table, or is not a Staff user.
+        """
         user_id = get_jwt_identity()
         try:
             query = db.select(Staff).filter_by(user_id=user_id)
@@ -31,6 +37,13 @@ def authorise_as_admin(fn):
 def authorise_as_staff(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
+        """Wrapper function for authorising a staff member.
+
+        Used in other controller functions to easily authorise a user as a staff member.
+
+        Errors:
+            403: Displays error if user does not have a matching record in the Staff table.
+        """
         user_id = get_jwt_identity()
         try:
             query = db.select(Staff).filter_by(user_id=user_id)
@@ -65,7 +78,7 @@ def auth_register():
         Key value pairs for the email and id fields for the new record in the Users table, in JSON format.
 
     Errors:
-        xx: 
+        400: Displayed if email or password don't meet validation conditions. 
         409: Displayed if email field provided already exists in the Users table.
         409: Displayed if a required field is not provided.
     """
@@ -106,16 +119,19 @@ def auth_login():
         Key value pairs for the email field for the matching record in the Users table, and a token, in JSON format.
 
     Errors:
-        xx: 
+        409: Displayed if email or password fields are not provided. 
         401: Displayed if the email or password provided do not match a record in the Users table.
     """    
-    body_data = request.get_json()
-    query = db.select(User).filter_by(email=body_data.get("email"))
-    user = db.session.scalar(query)
-    if user and bcrypt.check_password_hash(user.password, body_data.get("password")):
-        token = create_access_token(
-            identity=str(user.id), expires_delta=timedelta(days=1)
-        )
-        return {"email": user.email, "token": token}
-    else:
-        return {"error": "Invalid email or password"}, 401
+    try:
+        body_data = request.get_json()
+        query = db.select(User).filter_by(email=body_data.get("email"))
+        user = db.session.scalar(query)
+        if user and bcrypt.check_password_hash(user.password, body_data.get("password")):
+            token = create_access_token(
+                identity=str(user.id), expires_delta=timedelta(days=1)
+            )
+            return {"email": user.email, "token": token}
+        else:
+            return {"error": "Invalid email or password"}, 401
+    except TypeError:
+        return {"error": "Email and password fields are both required, please try again."}, 409

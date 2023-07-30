@@ -52,7 +52,7 @@ def update_users():
         Key value pairs for the email and id fields for the updated record in the Users table, in JSON format.
 
     Errors:
-        xxx
+        400: Displayed if email or password don't meet validation conditions.
         401: Displayed if no JWT is provided.
     """
     user_id = get_jwt_identity()

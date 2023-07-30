@@ -37,10 +37,28 @@ def get_candidates():
     return jsonify(result)
 
 
-# allows a logged in user to create a candidate linked to their login ahead of making any applications, using a POST method:
 @candidates.route("/", methods=["POST"])
 @jwt_required()
 def create_candidate():
+    """Creates a new record in the Candidates table.
+
+    A POST request is used to create a new record in the Candidates table, linked to the user.id of the authenticated user. Requires a JWT.
+
+    Args:
+        None required.
+
+    Input:
+        name and phone_number fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the new record in the Candidates table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        409: Displayed if a required field is not provided.
+        409: Displayed if a Candidate record already exists with the user.id of the authenticated user.
+        401: Displayed if no JWT is provided.
+    """
     user_id = get_jwt_identity()
     query = db.select(Candidate).filter_by(user_id=user_id)
     candidate = db.session.scalar(query)
@@ -65,10 +83,27 @@ def create_candidate():
                 return {"error": "Candidate record already exists for your user id"}, 409
 
 
-# allows a candidate user to update their own details using a PUT or PATCH request:
 @candidates.route("/", methods=["PUT", "PATCH"])
 @jwt_required()
 def update_candidate():
+    """Updates record in Candidates table for linked user's own record.
+
+    A PUT or PATCH request is used to update the name or phone_number fields for an authenticated user's record in the Candidates table. Requires a JWT.
+
+    Args:
+        None required.
+
+    Input:
+        At least one of "name" or "phone_number", in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the updated record in the Candidate table, in JSON format.
+
+    Errors:
+        400: Displayed if name or phone_number don't meet validation conditions.
+        401: Displayed if no JWT is provided.
+        404: Displayed if a JWT is provided, but the user's id does not match a record in the Candidates table.
+    """
     user_id = get_jwt_identity()
     body_data = candidate_schema.load(request.get_json(), partial=True)
     query = db.select(Candidate).filter_by(user_id=user_id)

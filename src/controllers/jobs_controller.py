@@ -19,13 +19,29 @@ from psycopg2 import errorcodes
 jobs = Blueprint("jobs", __name__, url_prefix="/jobs")
 
 
-# lists open jobs using a GET request:
 @jobs.route("/", methods=["GET"])
 @jwt_required(optional=True)
 def get_open_jobs():
+    """Retrieves rows from Jobs table with an "open" status.
+
+    A GET request is used to retrieve all records in the Jobs table that have "Open" in their status field.
+
+    Args:
+        None required.
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for the fields in each record in the Jobs table that meet the filter, in JSON format.
+        Depending on the user's authentication, a different schema will be returned resulting in hiring_manager or salary_budget being excluded.
+        Records are sorted in ascending order by id.
+
+    Errors:
+        No expected errors.
+    """
     jobs_list = Job.query.order_by(Job.id).filter_by(status="Open")
     user_id = get_jwt_identity()
-    # checks if a user is a staff member and returns a more detailed schema if they are:
     query = db.select(Staff).filter_by(id=user_id)
     user = db.session.scalar(query)
     if user:
@@ -35,19 +51,34 @@ def get_open_jobs():
         else:
             result = jobs_staff_schema.dump(jobs_list)
             return jsonify(result)
-    # if not logged in or not staff, a more simplified schema is returned:
     else:
         result = jobs_view_schema.dump(jobs_list)
         return jsonify(result)
 
 
-# lists all jobs (regardless of status) using a GET request:
 @jobs.route("/all/", methods=["GET"])
 @jwt_required(optional=True)
 def get_all_jobs():
+    """Retrieves rows from Jobs table.
+
+    A GET request is used to retrieve all records in the Jobs table.
+
+    Args:
+        None required.
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for the fields in each record in the Jobs table, in JSON format.
+        Depending on the user's authentication, a different schema will be returned resulting in hiring_manager or salary_budget being excluded.
+        Records are sorted in ascending order by id.
+
+    Errors:
+        No expected errors.
+    """
     jobs_list = Job.query.order_by(Job.id).all()
     user_id = get_jwt_identity()
-    # checks if a user is staff and returns a more detailed schema if they are:
     query = db.select(Staff).filter_by(id=user_id)
     user = db.session.scalar(query)
     if user:
@@ -57,21 +88,35 @@ def get_all_jobs():
         else:
             result = jobs_staff_schema.dump(jobs_list)
             return jsonify(result)
-    # if not logged in or not staff, a more simplified schema is returned:
     else:
         result = jobs_view_schema.dump(jobs_list)
         return jsonify(result)
 
 
-# returns an individual job by id using a GET request, the schema depending on user permission:
 @jobs.route("/<int:id>/", methods=["GET"])
 @jwt_required(optional=True)
 def get_one_job(id):
+    """Retrieves a specified row from Jobs table.
+
+    A GET request is used to retrieve the specified record in the Jobs table.
+
+    Args:
+        job.id
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for the fields in the requested record from the Jobs table, in JSON format.
+        Depending on the user's authentication, a different schema will be returned resulting in hiring_manager or salary_budget being excluded.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Jobs table.
+    """
     query = db.select(Job).filter_by(id=id)
     job = db.session.scalar(query)
     if job:
         user_id = get_jwt_identity()
-        # checks if a user is a staff member and returns a more detailed schema if they are:
         stmt = db.select(Staff).filter_by(id=user_id)
         user = db.session.scalar(stmt)
         if user:
@@ -81,7 +126,6 @@ def get_one_job(id):
             else:
                 result = jobs_staff_schema.dump(job)
                 return jsonify(result)
-        # if not logged in or not staff, a more simplified schema is returned:
         else:
             result = jobs_view_schema.dump(job)
             return jsonify(result)
@@ -89,11 +133,28 @@ def get_one_job(id):
         return {"Error": f"Job not found with id {id}"}, 404
 
 
-# returns all applications for a particular job id using a GET request, for authorised users only:
 @jobs.route("/<int:id>/applications/", methods=["GET"])
 @jwt_required()
 @authorise_as_staff
 def get_job_applications(id):
+    """Retrieves rows from Applications table for a specified job.id.
+
+    A GET request is used to retrieve all records in the Applications table that contain the specified job.id. Requires a JWT and for a user to have staff permission.
+
+    Args:
+        job.id
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for all fields for each record in the Applications table that meet the job.id filter, in JSON format. Records are sorted in ascending order by application date.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Jobs table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_staff wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     applications_list = Application.query.order_by(Application.application_date).filter_by(job_id=id)
     if applications_list:
         return applications_staff_view_schema.dump(applications_list)
@@ -101,11 +162,30 @@ def get_job_applications(id):
         return {"Error": f"Job not found with id {id}"}, 404
 
 
-# allows an authorised user to create a new job using a POST request:
 @jobs.route("/", methods=["POST"])
 @jwt_required()
 @authorise_as_staff
 def create_job():
+    """Creates a new record in the Jobs table, only for staff users.
+
+    A POST request is used to create a new record in the Jobs table. Requires a JWT and for a user to have staff permission.
+
+    Args:
+        None required.
+
+    Input:
+        title, description, location, department, salary_budget and hiring_manager_id fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the new record in the Staff table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        409: Displayed if a required field is not provided.
+        404: Displayed if the hiring_manager_id provided doesn't match a record in the Staff table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_staff wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     try:
         job_fields = job_schema.load(request.json)
         new_job = Job()
@@ -126,14 +206,33 @@ def create_job():
         else:
             return {
                 "error": f"Invalid hiring manager id provided, please try again."
-            }, 400
+            }, 404
 
 
-# allows an authorised staff member to update a job using a PUT or PATCH request:
 @jobs.route("/<int:id>/", methods=["PUT", "PATCH"])
 @jwt_required()
 @authorise_as_staff
 def update_job(id):
+    """Updates a specified record in Jobs table, only for staff users.
+
+    A PUT or PATCH request is used to update the specified record in the Jobs table. Requires a JWT and for a user to have staff permission.
+
+    Args:
+        job.id
+
+    Input:
+        At least one or more of title, description, location, department, salary_budget and hiring_manager_id fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the updated record in the Jobs table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        404: Displayed if the id provided as an arg doesn't match a record in the Jobs table.
+        404: Displayed if the hiring_manager_id provided doesn't match a record in the Staff table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_staff wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     body_data = job_schema.load(request.get_json(), partial=True)
     query = db.select(Job).filter_by(id=id)
     job = db.session.scalar(query)
@@ -158,7 +257,6 @@ def update_job(id):
         return {"error": f"Job not found with id {id}"}, 404
 
 
-# deletes a job post using DELETE method, only admins can perform this action:
 @jobs.route("/<int:id>/", methods=["DELETE"])
 @jwt_required()
 @authorise_as_admin

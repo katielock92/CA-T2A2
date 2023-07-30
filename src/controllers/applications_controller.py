@@ -77,10 +77,29 @@ def get_one_application(id):
         return {"Error": f"Application not found with id {id}"}, 404
 
 
-# creates a new application using a POST request:
 @applications.route("/", methods=["POST"])
 @jwt_required()
 def create_application():
+    """Creates a new record in the Applications table.
+
+    A POST request is used to create a new record in the Applications table. Requires a JWT and for the user to be linked to a record in the Candidates table.
+
+    Args:
+        None required.
+
+    Input:
+        job_id, resume, location, salary_expectations, notice_period and working_rights fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the new record in the Applications table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        409: Displayed if a required field is not provided.
+        404: Displayed if the job_id provided doesn't match a record in the Jobs table.
+        401: Displayed if the authenticated user does not have a linked record in the Candidates table.
+        401: Displayed if no JWT is provided.
+    """
     user_id = get_jwt_identity()
     query = db.select(Candidate).filter_by(user_id=user_id)
     user = db.session.scalar(query)
@@ -111,11 +130,29 @@ def create_application():
         }, 401
 
 
-# allows an admin to update an application status using a PUT or PATCH request:
 @applications.route("/<int:id>/", methods=["PUT", "PATCH"])
 @jwt_required()
 @authorise_as_admin
 def update_application(id):
+    """Updates a specified record in Applications table, only for admin users.
+
+    A PUT or PATCH request is used to update the status field for a specified record in the Applications table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        application.id
+
+    Input:
+        Valid string value for "status".
+
+    Returns:
+        Key value pairs for all fields for the updated record in the Applications table, in JSON format.
+
+    Errors:
+        400: Displayed if an invalid status value is provided.
+        404: Displayed if the id provided as an arg doesn't match a record in the Applications table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     body_data = application_schema.load(request.get_json(), partial=True)
     query = db.select(Application).filter_by(id=id)
     application = db.session.scalar(query)

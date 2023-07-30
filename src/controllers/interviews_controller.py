@@ -48,10 +48,27 @@ def get_all_interviews():
     return jsonify(result)
 
 
-# lists user's interviews using a GET request:
 @interviews.route("/", methods=["GET"])
 @jwt_required()
 def get_my_interviews():
+    """Retrieves rows from the Interviews table that match the authenticated user.
+
+    A GET request is used to retrieve all records in the Interviews table that contain an interviewer_id or candidate_id linked to the authenticated user. Requires a JWT to return a result.
+
+    Args:
+        None required.
+
+    Input:
+        None required.
+
+    Returns:
+        If a match is found, key value pairs for all fields for each record in the Interviews table that match the filter, in JSON format.
+        Records are sorted in ascending order by interview datetime.
+        If not result is found or no JWT provided, the user is returned a JSON message saying they have no interviews scheduled.
+
+    Errors:
+        No errors expected.
+    """
     user_id = get_jwt_identity()
     try:
         # checks for user in Staff:
@@ -79,16 +96,35 @@ def get_my_interviews():
         return {"message": "You have no scheduled interviews."}
 
 
-# allows an authorised user to create a new interview using a POST request:
 @interviews.route("/", methods=["POST"])
 @jwt_required()
 @authorise_as_staff
 def create_interview():
+    """Creates a new record in the Interviews table, only for staff users.
+
+    A POST request is used to create a new record in the Interviews table. Requires a JWT and for a user to have staff permission.
+
+    Args:
+        None required.
+
+    Input:
+        application.id, format, length_mins, interviewer_id, and interview_datetime fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the new record in the Interview table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        409: Displayed if a required field is not provided.
+        409: Displayed if the hiring_manager_id provided doesn't match a record in the Staff table.
+        409: Displayed if the application_id provided doesn't match a record in the Applications table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_staff wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     try:
         interview_fields = interview_schema.load(request.json)
         new_interview = Interview()
         new_interview.application_id = interview_fields["application_id"]
-        # sourcing the candidate id based on the application id supplied:
         query = db.select(Application).filter_by(id=new_interview.application_id)
         application = db.session.scalar(query)
         new_interview.candidate_id = application.candidate_id
@@ -110,11 +146,30 @@ def create_interview():
             }, 409
 
 
-# allows an admin to update an interview using a PUT or PATCH request:
 @interviews.route("/<int:id>/", methods=["PUT", "PATCH"])
 @jwt_required()
 @authorise_as_admin
 def update_interview(id):
+    """Updates a specified record in the Interviews table, only for admin users.
+
+    A PUT or PATCH request is used to update the specified record in the Interviews table. Requires a JWT and for a user to have admin permission.
+
+    Args:
+        interview.id
+
+    Input:
+        At least one or more of format, length_mins, interviewer_id and interview_datetime fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the updated record in the Interviews table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        404: Displayed if the id provided as an arg doesn't match a record in the Interviews table.
+        409: Displayed if the hiring_manager_id provided doesn't match a record in the Staff table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     body_data = interview_schema.load(request.get_json(), partial=True)
     query = db.select(Interview).filter_by(id=id)
     interview = db.session.scalar(query)

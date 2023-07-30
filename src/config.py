@@ -3,13 +3,11 @@ import os
 
 class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    # obtaining secret key from .env file:
     JWT_SECRET_KEY = os.environ.get("SECRET_KEY")
     JSON_SORT_KEYS = False
 
     @property
     def SQLALCHEMY_DATABASE_URI(self):
-        # obtaining URI from .env file:
         value = os.environ.get("DATABASE_URL")
 
         if not value:
@@ -29,7 +27,6 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     TESTING = True
 
-# telling Flask to check our .flaskenv file for environment variables:
 
 environment = os.environ.get("FLASK_ENV")
 

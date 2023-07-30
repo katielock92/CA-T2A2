@@ -13,9 +13,9 @@ from datetime import date, datetime
 db_commands = Blueprint("db", __name__)
 
 
-# Command to create the database tables:
 @db_commands.cli.command("create")
 def create_db():
+    """Creates the database tables."""
     db.create_all()
     print("Database tables created")
 
@@ -23,15 +23,24 @@ def create_db():
 # Command to drop the database tables:
 @db_commands.cli.command("drop")
 def drop_db():
+    """Drops the database tables."""
     db.drop_all()
     print("Database tables dropped")
 
 
-# Commands to seed the database tables:
 @db_commands.cli.command("seed")
 def seed_db():
+    """Seeds the database tables.
 
-    # create the test User objects:
+    Table values are specified and committed in the following order due to relationships:
+        Users
+        Staff
+        Candidates
+        Jobs
+        Applications
+        Interviews
+        Scorecards
+    """
     users = [
         User(
             email="elizabeth.riley@example.com",
@@ -59,10 +68,7 @@ def seed_db():
         ),
     ]
     db.session.add_all(users)
-
     db.session.commit()
-
-    # create the test Staff and Candidate objects:
 
     staff = [
         Staff(name="Elizabeth Riley", user_id=1, title="Recruiter", admin=True),
@@ -81,7 +87,6 @@ def seed_db():
     db.session.add_all(candidates)
     db.session.commit()
 
-    # create the test Job objects:
     jobs = [
         Job(
             title="DevOps Engineer",
@@ -106,7 +111,6 @@ def seed_db():
 
     db.session.commit()
 
-    # create the test Application objects:
     applications = [
         Application(
             job_id=1,
@@ -130,10 +134,8 @@ def seed_db():
         ),
     ]
     db.session.add_all(applications)
-
     db.session.commit()
 
-    # create the test Interview objects:
     interviews = [
         Interview(
             application_id=1,
@@ -161,10 +163,8 @@ def seed_db():
         ),
     ]
     db.session.add_all(interviews)
-
     db.session.commit()
 
-    # create the test Scorecard objects:
     scorecards = [
         Scorecard(
             scorecard_datetime=datetime.now(),
@@ -174,7 +174,6 @@ def seed_db():
         )
     ]
     db.session.add_all(scorecards)
-
     db.session.commit()
 
     print("Database tables seeded")

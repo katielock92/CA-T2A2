@@ -59,7 +59,7 @@ class UserSchema(ma.Schema):
     )
 
     class Meta:
-        fields = (("id", "email", "password"),)
+        fields = ("id", "email", "password")
         ordered = True
 
 

@@ -54,11 +54,33 @@ def get_scorecard(interview_id):
         return {"error": f"Interview not found with id {interview_id}"}, 404
 
 
-# allows an interviewer to create a new scorecard using a POST request:
 @scorecards.route("/", methods=["POST"])
 @jwt_required()
 @authorise_as_staff
 def create_scorecard(interview_id):
+    """Creates a new record in the Scorecards table, only for the interviewer.
+
+    A POST request is used to create a new record in the Scorecards table.
+    Requires a JWT, for a user to have staff permission and for the interviewer_id on the interview to be linked to the Staff record of the authenticated user.
+
+    Args:
+        interview.id
+
+    Input:
+        notes and rating fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the new record in the Scorecards table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        409: Displayed if a required field is not provided.
+        404: Displayed if the interview_id provided doesn't match a record in the Interviews table.
+        409: Displayed if there is already a record in the Scorecards record linked to the interview.id provided.
+        403: Displayed if the user does not meet the conditions of the authorise_as_staff wrapper functions.
+        403: Displayed if the authenticated staff user does not link to the interviewer_id on the specified interview.id.
+        401: Displayed if no JWT is provided.
+    """
     try:
         query = db.select(Interview).filter_by(id=interview_id)
         interview = db.session.scalar(query)
@@ -88,11 +110,32 @@ def create_scorecard(interview_id):
             }, 409
 
 
-# allows an admin to update an scorecard notes or rating using a PUT or PATCH request:
 @scorecards.route("/", methods=["PUT", "PATCH"])
 @jwt_required()
 @authorise_as_staff
 def update_scorecard(interview_id):
+    """Updates a specified record in the Scorecards table, only for the interviewer.
+
+    A PUT or PATCH request is used to update the specified record in the Scorecards table.
+    Requires a JWT, for a user to have staff permission and for the interviewer_id on the interview to be linked to the Staff record of the authenticated user.
+
+    Args:
+        interview.id
+
+    Input:
+        At least one of notes or rating fields, in JSON format.
+
+    Returns:
+        Key value pairs for all fields for the updated record in the Scorecards table, in JSON format.
+
+    Errors:
+        400: Displayed if a value provided for a field doesn't match a validation criteria.
+        404: Displayed if the interview_id provided doesn't match a record in the Interviews table.
+        404: Displayed if there is no matching Scorecards record linked to the interview.id provided.
+        403: Displayed if the user does not meet the conditions of the authorise_as_staff wrapper functions.
+        403: Displayed if the authenticated staff user does not link to the interviewer_id on the specified interview.id.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Interview).filter_by(id=interview_id)
     interview = db.session.scalar(query)
     if interview:
