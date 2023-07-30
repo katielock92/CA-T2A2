@@ -104,8 +104,8 @@ validate_notice_period = fields.String(
 validate_resume = fields.String(
     required=True,
     validate=Regexp(
-        "^[[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)]+$",
-        error="Invalid URL provided - please try again.",
+        "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$",
+        error="Invalid URL provided - http or https is required. Please try again.",
     ),
 )
 

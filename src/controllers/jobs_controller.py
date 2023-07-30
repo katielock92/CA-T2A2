@@ -163,6 +163,24 @@ def update_job(id):
 @jwt_required()
 @authorise_as_admin
 def delete_job(id):
+    """Deletes a record in Jobs table.
+
+    A DELETE request is used to delete the specified record in the Jobs table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        job.id
+
+    Input:
+        None required.
+
+    Returns:
+        A confirmation message in JSON format that the job record has been deleted.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Job table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Job).filter_by(id=id)
     job = db.session.scalar(query)
     if job:

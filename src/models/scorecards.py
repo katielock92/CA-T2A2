@@ -32,6 +32,8 @@ class Scorecard(db.Model):
     interview = db.relationship("Interview", back_populates="scorecards")
 
 
+VALID_RATING = ("Strong Yes", "Yes", "No Decision", "No", "Strong No")
+
 class ScorecardSchema(ma.Schema):
 
     """The primary Schema for the Scorecards model.
@@ -55,7 +57,7 @@ class ScorecardSchema(ma.Schema):
     notes = fields.String(required=True)
     rating = fields.String(
         required=True,
-        validate=OneOf("Strong Yes", "Yes", "No Decision", "No", "Strong No"),
+        validate=OneOf(VALID_RATING),
     )
 
     class Meta:
@@ -89,7 +91,7 @@ class ScorecardViewSchema(ma.Schema):
     notes = fields.String(required=True)
     rating = fields.String(
         required=True,
-        validate=OneOf("Strong Yes", "Yes", "No Decision", "No", "Strong No"),
+        validate=OneOf(VALID_RATING),
     )
 
     class Meta:

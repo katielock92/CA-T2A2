@@ -13,11 +13,28 @@ from psycopg2 import errorcodes
 scorecards = Blueprint("scorecards", __name__)
 
 
-# displays the scorecard for an interview using a GET request:
 @scorecards.route("/", methods=["GET"])
 @jwt_required()
 @authorise_as_staff
 def get_scorecard(interview_id):
+    """Retrieves a single row from Scorecards table.
+
+    A GET request is used to retrieve the specified record in the Scorecard table. Requires a JWT and for a user to be an admin user, or be the interviewer.
+
+    Args:
+        interview.id
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for all fields in the requested record in the Scorecard table, in JSON format.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Interviews table, or there is no record in the Scorecards table with a matching interview_id.
+        403: Displayed if the user does not meet the conditions of the authorise_as_staff wrapper functions and/or is not either an admin user, or the specified interviewer.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Interview).filter_by(id=interview_id)
     interview = db.session.scalar(query)
     if interview:
@@ -99,11 +116,28 @@ def update_scorecard(interview_id):
         return {"error": f"Scorecard not found with for interview {interview_id}"}, 404
 
 
-# deletes a scorecard using DELETE method, only admins can perform this action:
 @scorecards.route("/", methods=["DELETE"])
 @jwt_required()
 @authorise_as_admin
 def delete_scorecard(interview_id):
+    """Deletes a record in Scorecards table.
+
+    A DELETE request is used to delete the specified record in the Scorecards table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        interview.id
+
+    Input:
+        None required.
+
+    Returns:
+        A confirmation message in JSON format that the scorecard record has been deleted.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Interviews table, and/or there is no matching Scorecard record linked to this interview.id.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Scorecard).filter_by(interview_id=interview_id)
     scorecard = db.session.scalar(query)
     if scorecard:

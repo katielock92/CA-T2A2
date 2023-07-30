@@ -51,6 +51,24 @@ auth = Blueprint("auth", __name__, url_prefix="/auth")
 # POST method for new users to register:
 @auth.route("/register", methods=["POST"])
 def auth_register():
+    """Creates new record in the Users table.
+
+    A POST request is used to create a new record in the Users table, which is later used to authenticate the user.
+
+    Args:
+        None required.
+
+    Input:
+        Email and password, in JSON format.
+
+    Returns:
+        Key value pairs for the email and id fields for the new record in the Users table, in JSON format.
+
+    Errors:
+        xx: 
+        409: Displayed if email field provided already exists in the Users table.
+        409: Displayed if a required field is not provided.
+    """
     try:
         body_data = user_schema.load(request.json)
         user = User()
@@ -72,9 +90,25 @@ def auth_register():
             return {"error": "Uh oh! An unknown error occurred"}, 400
 
 
-# POST method for existing users to login:
 @auth.route("/login", methods=["POST"])
 def auth_login():
+    """Authenticates an existing record in the Users table.
+
+    A POST request is used to authenticate a record in the Users table, and return a JWT that is used to perform other operations that require authentication.
+
+    Args:
+        None required.
+
+    Input:
+        Email and password, in JSON format.
+
+    Returns:
+        Key value pairs for the email field for the matching record in the Users table, and a token, in JSON format.
+
+    Errors:
+        xx: 
+        401: Displayed if the email or password provided do not match a record in the Users table.
+    """    
     body_data = request.get_json()
     query = db.select(User).filter_by(email=body_data.get("email"))
     user = db.session.scalar(query)

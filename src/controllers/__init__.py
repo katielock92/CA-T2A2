@@ -1,3 +1,8 @@
+"""Initialises all controllers.
+
+This module imports each controller from their respective individual files, and creates one combined variable for all controllers that is used to initialise in main.py.
+"""
+
 from controllers.jobs_controller import jobs
 from controllers.users_controller import users
 from controllers.applications_controller import applications

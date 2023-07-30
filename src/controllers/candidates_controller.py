@@ -11,11 +11,27 @@ from psycopg2 import errorcodes
 candidates = Blueprint("candidates", __name__, url_prefix="/candidates")
 
 
-# lists all candidates using a GET request, only available to admins:
 @candidates.route("/", methods=["GET"])
 @jwt_required()
 @authorise_as_admin
 def get_candidates():
+    """Retrieves rows from Candidates table.
+
+    A GET request is used to retrieve all records in the Candidates table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        None required.
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for the fields in each record in the Candidates table, in JSON format. Records are sorted in ascending order by id.
+
+    Errors:
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     candidates_list = Candidate.query.order_by(Candidate.id).all()
     result = candidates_schema.dump(candidates_list)
     return jsonify(result)
@@ -66,11 +82,28 @@ def update_candidate():
         return {"error": "You do not have a Candidate record to update"}, 404
 
 
-# deletes a candidate using DELETE method, only admins can perform this action:
 @candidates.route("/<int:id>/", methods=["DELETE"])
 @jwt_required()
 @authorise_as_admin
 def delete_candidate(id):
+    """Deletes a record in Candidates table.
+
+    A DELETE request is used to delete the specified record in the Candidates table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        candidate.id
+
+    Input:
+        None required.
+
+    Returns:
+        A confirmation message in JSON format that the candidate record has been deleted.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Candidates table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Candidate).filter_by(id=id)
     candidate = db.session.scalar(query)
     if candidate:

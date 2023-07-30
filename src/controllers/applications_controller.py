@@ -19,12 +19,27 @@ from psycopg2 import errorcodes
 
 applications = Blueprint("applications", __name__, url_prefix="/applications")
 
-
-# lists all applications using a GET request, only admins can perform this action:
 @applications.route("/", methods=["GET"])
 @jwt_required()
 @authorise_as_admin
 def get_all_applications():
+    """Retrieves rows from Applications table.
+
+    A GET request is used to retrieve all records in the Applications table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        None required.
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for all fields for each record in the Applications table, in JSON format. Records are sorted in ascending order by application date.
+
+    Errors:
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     applications_list = (
         Application.query.order_by(Application.application_date).all()
     )
@@ -32,11 +47,28 @@ def get_all_applications():
     return jsonify(result)
 
 
-# gets application by id using a GET request, only authenticated staff can perform this action:
 @applications.route("/<int:id>/", methods=["GET"])
 @jwt_required()
 @authorise_as_staff
 def get_one_application(id):
+    """Retrieves a single row from Applications table.
+
+    A GET request is used to retrieve the specified record in the Applications table. Requires a JWT and for a user to be a Staff user.
+
+    Args:
+        application.id
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for all fields in the requested record in the Applications table, in JSON format.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Applications table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_staff wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Application).filter_by(id=id)
     application = db.session.scalar(query)
     if application:
@@ -95,11 +127,28 @@ def update_application(id):
         return {"error": f"Application not found with id {id}"}, 404
 
 
-# deletes an application using DELETE method, only admins can perform this action:
 @applications.route("/<int:id>/", methods=["DELETE"])
 @jwt_required()
 @authorise_as_admin
 def delete_application(id):
+    """Deletes a record in Applications table.
+
+    A DELETE request is used to delete the specified record in the Applications table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        application.id
+
+    Input:
+        None required.
+
+    Returns:
+        A confirmation message in JSON format that the application record has been deleted.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Applications table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Application).filter_by(id=id)
     application = db.session.scalar(query)
     if application:

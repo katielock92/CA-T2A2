@@ -10,12 +10,27 @@ from psycopg2 import errorcodes
 
 staff = Blueprint("staff", __name__, url_prefix="/staff")
 
-
-# lists all staff using a GET request, only available to admins:
 @staff.route("/", methods=["GET"])
 @jwt_required()
 @authorise_as_admin
 def get_staff():
+    """Retrieves rows from Staff table.
+
+    A GET request is used to retrieve all records in the Staff table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        None required.
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for the fields in each record in the Staff table, in JSON format. Records are sorted in ascending order by id.
+
+    Errors:
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     staff_list = Staff.query.order_by(Staff.id).all()
     result = staffs_schema.dump(staff_list)
     return jsonify(result)
@@ -82,11 +97,28 @@ def update_staff_admin(id):
         return {"error": f"Staff not found with id {id}"}, 404
 
 
-# allows an admin to delete a staff member using a DELETE request:
 @staff.route("/<int:id>/", methods=["DELETE"])
 @jwt_required()
 @authorise_as_admin
 def delete_staff(id):
+    """Deletes a record in Staff table.
+
+    A DELETE request is used to delete the specified record in the Staff table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        user.id
+
+    Input:
+        None required.
+
+    Returns:
+        A confirmation message in JSON format that the staff record has been deleted.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Staff table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Staff).filter_by(id=id)
     staff = db.session.scalar(query)
     if staff:

@@ -22,11 +22,27 @@ interviews = Blueprint("interviews", __name__, url_prefix="/interviews")
 interviews.register_blueprint(scorecards, url_prefix="/<int:interview_id>/scorecards")
 
 
-# lists all interviews using a GET request, only admins can perform this action:
 @interviews.route("/all", methods=["GET"])
 @jwt_required()
 @authorise_as_admin
 def get_all_interviews():
+    """Retrieves rows from the Interviews table.
+
+    A GET request is used to retrieve all records in the Interviews table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        None required.
+
+    Input:
+        None required.
+
+    Returns:
+        Key value pairs for all fields for each record in the Interviews table, in JSON format. Records are sorted in ascending order by interview datetime.
+
+    Errors:
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     interviews_list = Interview.query.order_by(Interview.interview_datetime).all()
     result = interviews_staff_view_schema.dump(interviews_list)
     return jsonify(result)
@@ -117,11 +133,28 @@ def update_interview(id):
         return {"error": f"Interview not found with id {id}"}, 404
 
 
-# deletes an application using DELETE method, only admins can perform this action:
 @interviews.route("/<int:id>/", methods=["DELETE"])
 @jwt_required()
 @authorise_as_admin
 def delete_interview(id):
+    """Deletes a record in Interviews table.
+
+    A DELETE request is used to delete the specified record in the Interviews table. Requires a JWT and for a user to have the admin permission.
+
+    Args:
+        interview.id
+
+    Input:
+        None required.
+
+    Returns:
+        A confirmation message in JSON format that the interview record has been deleted.
+
+    Errors:
+        404: Displayed if the id provided as an arg doesn't match a record in the Interviews table.
+        403: Displayed if the user does not meet the conditions of the authorise_as_admin wrapper functions.
+        401: Displayed if no JWT is provided.
+    """
     query = db.select(Interview).filter_by(id=id)
     interview = db.session.scalar(query)
     if interview:
